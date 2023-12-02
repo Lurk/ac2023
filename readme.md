@@ -16,7 +16,7 @@ ac2023 first <path to input>
 
 ## Day 2
 
-Today we will have to different kinds of calculation fit and max. 
+Today we will have to different kinds of calculation `fit` and `max`. 
 
 Initial idea of using `PartialOrd` to compare Round's was bad. 
 
