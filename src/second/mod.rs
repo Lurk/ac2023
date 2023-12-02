@@ -1,5 +1,7 @@
 use clap::ValueEnum;
-use std::{fs::read_to_string, path::PathBuf, usize};
+use std::{path::PathBuf, usize};
+
+use crate::utils::get_non_empty_lines;
 
 #[derive(ValueEnum, Debug, Clone)]
 pub enum Type {
@@ -49,13 +51,13 @@ impl Round {
     }
 
     fn update_if_gt(&mut self, other: &Round) {
-        if self.red > other.red {
+        if self.red < other.red {
             self.red = other.red;
         }
-        if self.blue > other.blue {
+        if self.blue < other.blue {
             self.blue = other.blue;
         }
-        if self.green > other.green {
+        if self.green < other.green {
             self.green = other.green;
         }
     }
@@ -80,13 +82,9 @@ impl TryFrom<&str> for Round {
 
 pub fn run(path: PathBuf, typ: &Type) {
     let requirement = Round::new(12, 14, 13);
-    let input = read_to_string(path).unwrap();
     let mut total: usize = 0;
-    for line in input.lines() {
-        if line.is_empty() {
-            continue;
-        }
-        let game = Game::try_from(line).unwrap();
+    for line in get_non_empty_lines(path) {
+        let game = Game::try_from(line.as_str()).unwrap();
         match typ {
             Type::Fit => {
                 total += if game.rounds.iter().all(|x| x.does_fit_into(&requirement)) {
