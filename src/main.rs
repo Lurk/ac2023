@@ -1,12 +1,21 @@
 use std::path::PathBuf;
 
 use clap::{command, Parser, Subcommand};
+use second::Type;
 
-pub mod first;
+mod first;
+mod second;
 
 #[derive(Subcommand, Debug)]
 enum Days {
-    First { path: PathBuf },
+    First {
+        path: PathBuf,
+    },
+    Second {
+        path: PathBuf,
+        #[clap(value_enum, value_parser)]
+        typ: Type,
+    },
 }
 
 #[derive(Parser, Debug)]
@@ -21,5 +30,6 @@ fn main() {
     let args = Cli::parse();
     match args.command {
         Days::First { path } => first::run(path),
+        Days::Second { path, typ } => second::run(path, &typ),
     }
 }

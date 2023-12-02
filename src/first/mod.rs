@@ -41,7 +41,7 @@ pub fn process(line: &str) -> usize {
         }
     }
 
-    if str.len() == 0 {
+    if str.is_empty() {
         return 0;
     }
     str.parse::<usize>().unwrap()
@@ -49,9 +49,8 @@ pub fn process(line: &str) -> usize {
 
 pub fn run(path: PathBuf) {
     let input = read_to_string(path).unwrap();
-    let mut lines = input.lines();
     let mut total: u64 = 0;
-    while let Some(line) = lines.next() {
+    for line in input.lines() {
         total += process(line) as u64;
     }
     println!("{}", total);
