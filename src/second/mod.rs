@@ -50,7 +50,7 @@ impl Round {
         self.red <= other.red && self.blue <= other.blue && self.green <= other.green
     }
 
-    fn update_if_gt(&mut self, other: &Round) {
+    fn update_if_lt(&mut self, other: &Round) {
         if self.red < other.red {
             self.red = other.red;
         }
@@ -96,7 +96,7 @@ pub fn run(path: PathBuf, typ: &Type) {
             Type::Max => {
                 let mut max_round = Round::new(0, 0, 0);
                 for round in game.rounds {
-                    max_round.update_if_gt(&round);
+                    max_round.update_if_lt(&round);
                 }
 
                 total += max_round.red * max_round.blue * max_round.green;
