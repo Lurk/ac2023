@@ -3,7 +3,7 @@
 Installation:
 
 ```shell
-cargo install -git ac2023
+cargo install --git https://github.com/Lurk/ac2023.git ac2023
 ```
 
 ## Day 1
