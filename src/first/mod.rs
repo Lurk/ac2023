@@ -1,4 +1,6 @@
-use std::{fs::read_to_string, path::PathBuf, u64, usize};
+use std::{path::PathBuf, u64, usize};
+
+use crate::utils::get_non_empty_lines;
 
 const NUMBERS: [&str; 10] = [
     "zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine",
@@ -48,10 +50,9 @@ pub fn process(line: &str) -> usize {
 }
 
 pub fn run(path: PathBuf) {
-    let input = read_to_string(path).unwrap();
     let mut total: u64 = 0;
-    for line in input.lines() {
-        total += process(line) as u64;
+    for line in get_non_empty_lines(path) {
+        total += process(line.as_str()) as u64;
     }
     println!("{}", total);
 }

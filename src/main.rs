@@ -5,6 +5,7 @@ use second::Type;
 
 mod first;
 mod second;
+mod utils;
 
 #[derive(Subcommand, Debug)]
 enum Days {
