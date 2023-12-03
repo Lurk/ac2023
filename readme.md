@@ -32,3 +32,17 @@ ac2023 second <path to input> two
 ## Day 3
 
 IDK if I should support all previous days. Does not seem like a lot of work.
+
+Today's task is much more complex than previous ones. Tests are required. 
+
+There is a huge potential to optimize, but it is Sunday, and I still haven't finished the first Fallout.
+
+
+```shell
+ac2023 third <path to input> one
+```
+
+```shell
+ac2023 third <path to input> two
+```
+

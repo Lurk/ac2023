@@ -40,6 +40,6 @@ fn main() {
     match args.command {
         Days::First(runner) => first::run(runner.path),
         Days::Second(runner) => second::run(&runner),
-        Days::Third(_) => todo!(),
+        Days::Third(runner) => third::run(&runner),
     }
 }
