@@ -51,7 +51,7 @@ pub fn process(line: &str) -> usize {
 
 pub fn run(path: PathBuf) {
     let mut total: u64 = 0;
-    for line in get_non_empty_lines(path) {
+    for line in get_non_empty_lines(&path) {
         total += process(line.as_str()) as u64;
     }
     println!("{}", total);

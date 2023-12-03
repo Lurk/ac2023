@@ -1,13 +1,4 @@
-use clap::ValueEnum;
-use std::{path::PathBuf, usize};
-
-use crate::utils::get_non_empty_lines;
-
-#[derive(ValueEnum, Debug, Clone)]
-pub enum Type {
-    Fit,
-    Max,
-}
+use crate::{utils::get_non_empty_lines, Part, Runner};
 
 #[derive(Debug)]
 struct Round {
@@ -80,20 +71,20 @@ impl TryFrom<&str> for Round {
     }
 }
 
-pub fn run(path: PathBuf, typ: &Type) {
+pub fn run(runner: &Runner) {
     let requirement = Round::new(12, 14, 13);
     let mut total: usize = 0;
-    for line in get_non_empty_lines(path) {
+    for line in get_non_empty_lines(&runner.path) {
         let game = Game::try_from(line.as_str()).unwrap();
-        match typ {
-            Type::Fit => {
+        match runner.part {
+            Part::One => {
                 total += if game.rounds.iter().all(|x| x.does_fit_into(&requirement)) {
                     game.id
                 } else {
                     0
                 };
             }
-            Type::Max => {
+            Part::Two => {
                 let mut max_round = Round::new(0, 0, 0);
                 for round in game.rounds {
                     max_round.update_if_lt(&round);

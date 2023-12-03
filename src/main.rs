@@ -1,22 +1,30 @@
 use std::path::PathBuf;
 
-use clap::{command, Parser, Subcommand};
-use second::Type;
+use clap::{command, Parser, Subcommand, ValueEnum};
 
 mod first;
 mod second;
+mod third;
 mod utils;
+
+#[derive(ValueEnum, Debug, Clone)]
+pub enum Part {
+    One,
+    Two,
+}
+
+#[derive(Parser, Debug)]
+pub struct Runner {
+    #[clap(value_enum, value_parser)]
+    pub part: Part,
+    pub path: PathBuf,
+}
 
 #[derive(Subcommand, Debug)]
 enum Days {
-    First {
-        path: PathBuf,
-    },
-    Second {
-        path: PathBuf,
-        #[clap(value_enum, value_parser)]
-        typ: Type,
-    },
+    First(Runner),
+    Second(Runner),
+    Third(Runner),
 }
 
 #[derive(Parser, Debug)]
@@ -30,7 +38,8 @@ struct Cli {
 fn main() {
     let args = Cli::parse();
     match args.command {
-        Days::First { path } => first::run(path),
-        Days::Second { path, typ } => second::run(path, &typ),
+        Days::First(runner) => first::run(runner.path),
+        Days::Second(runner) => second::run(&runner),
+        Days::Third(_) => todo!(),
     }
 }

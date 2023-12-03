@@ -11,21 +11,24 @@ cargo install --git https://github.com/Lurk/ac2023.git ac2023
 `Off by one` errors everywhere. 
 
 ```shell
-ac2023 first <path to input>
+ac2023 first <path to input> one
 ```
 
 ## Day 2
 
-Today we will have to different kinds of calculation `fit` and `max`. 
+Today's calculation will have two parts: `one` and `two`. 
 
 Initial idea of using `PartialOrd` to compare Round's was bad. 
 
 
 ```shell
-ac2023 second <path to input> fit
+ac2023 second <path to input> one
 ```
 
 ```shell
-ac2023 second <path to input> max
+ac2023 second <path to input> two
 ```
 
+## Day 3
+
+IDK if I should support all previous days. Does not seem like a lot of work.
