@@ -16,8 +16,8 @@ pub enum Part {
 #[derive(Parser, Debug)]
 pub struct Runner {
     #[clap(value_enum, value_parser)]
-    pub part: Part,
     pub path: PathBuf,
+    pub part: Part,
 }
 
 #[derive(Subcommand, Debug)]
