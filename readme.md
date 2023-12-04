@@ -49,3 +49,14 @@ ac2023 third <path to input> two
 ## Day 4
 
 Part one was surprisingly easy. 
+
+Part two was hard to understand, probably because of fever.
+
+```shell
+ac2023 fouth <path to input> one
+```
+
+```shell
+ac2023 fourth <path to input> two
+```
+
