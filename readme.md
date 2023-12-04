@@ -46,3 +46,6 @@ ac2023 third <path to input> one
 ac2023 third <path to input> two
 ```
 
+## Day 4
+
+Part one was surprisingly easy. 
