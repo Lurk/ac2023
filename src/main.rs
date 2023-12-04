@@ -3,6 +3,7 @@ use std::path::PathBuf;
 use clap::{command, Parser, Subcommand, ValueEnum};
 
 mod first;
+mod fourth;
 mod second;
 mod third;
 mod utils;
@@ -25,6 +26,7 @@ enum Days {
     First(Runner),
     Second(Runner),
     Third(Runner),
+    Fourth(Runner),
 }
 
 #[derive(Parser, Debug)]
@@ -41,5 +43,6 @@ fn main() {
         Days::First(runner) => first::run(runner.path),
         Days::Second(runner) => second::run(&runner),
         Days::Third(runner) => third::run(&runner),
+        Days::Fourth(runner) => fourth::run(&runner),
     }
 }
