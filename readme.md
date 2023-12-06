@@ -60,3 +60,20 @@ ac2023 fouth <path to input> one
 ac2023 fourth <path to input> two
 ```
 
+## Day 5
+
+Brute force approach takes too much time.
+
+`rayon` goes brrrr
+
+Test case for part two passes but answer is incorrect. I am sad panda. 
+
+Oooooh. The range in maps are not inclusive. So I passed first stage and test assignment by luck :)
+
+```shell
+ac2023 fifth <path to input> one
+```
+
+```shell
+ac2023 fifth <path to input> two
+```
