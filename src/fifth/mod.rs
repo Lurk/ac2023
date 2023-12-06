@@ -1,3 +1,5 @@
+use std::usize;
+
 use rayon::prelude::*;
 
 use crate::{utils::get_lines, Runner};
@@ -84,25 +86,16 @@ impl Map {
     }
 }
 
-fn one(maps: Vec<Map>, seeds: Vec<usize>) {
-    let mut locations = vec![];
-    for seed in seeds {
-        let mut current = seed;
-        for map in &maps {
-            let dest = map.get_destination(current);
-            current = dest;
-        }
-        locations.push(current);
-    }
-
-    locations.sort();
-
-    println!("Location: {:?}", locations[0]);
+fn one(maps: Vec<Map>, seeds: Vec<usize>) -> usize {
+    seeds
+        .par_iter()
+        .map(|seed| maps.iter().fold(*seed, |acc, map| map.get_destination(acc)))
+        .min()
+        .unwrap()
 }
 
 fn two(maps: Vec<Map>, seeds: Vec<usize>) -> usize {
-    println!("part two");
-    let location: usize = seeds
+    seeds
         .chunks(2)
         .map(|x| {
             (x[0]..x[0] + x[1])
@@ -115,10 +108,7 @@ fn two(maps: Vec<Map>, seeds: Vec<usize>) -> usize {
                 .unwrap()
         })
         .min()
-        .unwrap();
-
-    println!("lowest location number: {}", location);
-    location
+        .unwrap()
 }
 
 pub fn run(runner: &Runner) {
@@ -152,12 +142,12 @@ pub fn run(runner: &Runner) {
         maps.push(map);
     }
 
-    match runner.part {
+    let location = match runner.part {
         crate::Part::One => one(maps, seeds),
-        crate::Part::Two => {
-            two(maps, seeds);
-        }
-    }
+        crate::Part::Two => two(maps, seeds),
+    };
+
+    println!("Location: {:?}", location);
 }
 
 #[cfg(test)]
