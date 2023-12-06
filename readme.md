@@ -77,3 +77,16 @@ ac2023 fifth <path to input> one
 ```shell
 ac2023 fifth <path to input> two
 ```
+
+## Day 6
+
+That was easier than day 1
+
+```shell
+ac2023 sixth <path to input> one
+```
+
+```shell
+ac2023 sixth <path to input> two
+```
+
