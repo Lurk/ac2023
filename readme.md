@@ -90,3 +90,15 @@ ac2023 sixth <path to input> one
 ac2023 sixth <path to input> two
 ```
 
+## Day 7
+
+The day when my neat little abstraction broke on part two, and now it is not as beautiful as it can be.
+
+```shell
+ac2023 seventh <path to input> one
+```
+
+```shell
+ac2023 seventh <path to input> two
+```
+
