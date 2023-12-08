@@ -102,3 +102,23 @@ ac2023 seventh <path to input> one
 ac2023 seventh <path to input> two
 ```
 
+## Day 8
+
+Today is the day when brute force is no go. 
+
+After couple of hours looking at the debug output - we are looping with the same intervals. Which means what we need 
+to do is found all loop lengths, and then find LCM of those. 
+
+My math is rusty. Lets do naive LCM.
+
+Result in 3m is ok. I guess.
+
+```shell
+ac2023 eighth <path to input> one
+```
+
+```shell
+ac2023 eighth <path to input> two
+```
+
+

@@ -2,6 +2,7 @@ use std::path::PathBuf;
 
 use clap::{command, Parser, Subcommand, ValueEnum};
 
+mod eighth;
 mod fifth;
 mod first;
 mod fourth;
@@ -33,6 +34,7 @@ enum Days {
     Fifth(Runner),
     Sixth(Runner),
     Seventh(Runner),
+    Eighth(Runner),
 }
 
 #[derive(Parser, Debug)]
@@ -53,5 +55,6 @@ fn main() {
         Days::Fifth(runner) => fifth::run(&runner),
         Days::Sixth(runner) => sixth::run(&runner),
         Days::Seventh(runner) => seventh::run(&runner),
+        Days::Eighth(runner) => eighth::run(&runner),
     }
 }
