@@ -10,7 +10,7 @@ const CARDS_TWO: [char; 13] = [
     'J', '2', '3', '4', '5', '6', '7', '8', '9', 'T', 'Q', 'K', 'A',
 ];
 
-#[derive(Debug, Eq, Ord)]
+#[derive(Debug, Eq)]
 struct Hand {
     cards: Vec<usize>,
     value: usize,
@@ -73,10 +73,16 @@ impl PartialEq for Hand {
 
 impl PartialOrd for Hand {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for Hand {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         if self.value == other.value {
-            self.cards.partial_cmp(&other.cards)
+            self.cards.cmp(&other.cards)
         } else {
-            self.value.partial_cmp(&other.value)
+            self.value.cmp(&other.value)
         }
     }
 }
