@@ -1,6 +1,9 @@
 use std::{collections::HashMap, sync::Arc};
 
-use crate::{utils::get_lines, Runner};
+use crate::{
+    utils::{euclidic_lcm, get_lines},
+    Runner,
+};
 
 pub enum LineType {
     Direction(Vec<Direction>),
@@ -21,17 +24,6 @@ pub struct Node {
 pub struct Map {
     steps: Vec<Direction>,
     graph: HashMap<Arc<str>, Node>,
-}
-
-fn min_max_results(counts: &[(usize, usize)]) -> (usize, usize, Vec<usize>) {
-    counts.iter().fold(
-        (usize::MAX, 0, Vec::with_capacity(counts.len())),
-        |(min, max, mut v), x| {
-            let res = x.0 * x.1;
-            v.push(res);
-            (min.min(res), max.max(res), v)
-        },
-    )
 }
 
 impl Map {
@@ -72,8 +64,7 @@ impl Map {
     }
 
     pub fn steps_from_to_ends_with(&self, from: char, to: char) -> usize {
-        let steps_to_dest: Vec<usize> = self
-            .graph
+        self.graph
             .keys()
             .filter(|key| key.ends_with(from))
             .cloned()
@@ -93,29 +84,8 @@ impl Map {
                     }
                 }
             })
-            .collect();
-
-        let mut with_multipliers: Vec<(usize, usize)> = steps_to_dest
-            .iter()
-            .cloned()
-            .map(|count| (count, 1))
-            .collect();
-
-        // naive LCM algorithm
-        let (mut min, mut max, mut results) = min_max_results(&with_multipliers);
-        while min != max {
-            let min_index: usize = results
-                .iter()
-                .enumerate()
-                .min_by(|(_, a), (_, b)| a.cmp(b))
-                .map(|(index, _)| index)
-                .unwrap();
-
-            with_multipliers[min_index].1 += 1;
-
-            (min, max, results) = min_max_results(&with_multipliers);
-        }
-        results[0]
+            .reduce(euclidic_lcm)
+            .unwrap()
     }
 }
 

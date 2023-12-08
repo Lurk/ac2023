@@ -113,6 +113,11 @@ My math is rusty. Lets do naive LCM.
 
 Result in 3m is ok. I guess.
 
+I could not relax, so I googled how people calculate LCM. It turned out that more than 2000 years ago, our boy Euclid 
+had already [figured it all out](https://en.wikipedia.org/wiki/Greatest_common_divisor#Euclidean_algorithm).
+
+Now it is `blazingly`(TM) fast. 
+
 ```shell
 ac2023 eighth <path to input> one
 ```
