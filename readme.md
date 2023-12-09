@@ -126,4 +126,16 @@ ac2023 eighth <path to input> one
 ac2023 eighth <path to input> two
 ```
 
+## Day 9
+
+To solve today's riddle, I wrote the least amount of code.
+
+```shell
+ac2023 ninth <path to input> one
+```
+
+```shell
+ac2023 ninth <path to input> two
+```
+
 
