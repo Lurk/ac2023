@@ -92,10 +92,10 @@ impl Display for Tile {
     }
 }
 
-fn one(tiles: &[Tile], line_length: usize) -> usize {
+fn get_loop(tiles: &[Tile], line_length: usize) -> Vec<usize> {
     let mut current_position = tiles.iter().position(|tile| tile == &Tile::Start).unwrap();
-    let mut steps = 0;
     let mut directions = Vec::from(DIRECTIONS);
+    let mut loop_positions = Vec::new();
 
     loop {
         for direction in directions.iter() {
@@ -105,24 +105,28 @@ fn one(tiles: &[Tile], line_length: usize) -> usize {
                         if dir1.get_index(tiles.len(), line_length, pos) == Some(current_position) {
                             current_position = pos;
                             directions = vec![dir2.clone()];
-                            steps += 1;
+                            loop_positions.push(pos);
                             break;
                         } else if dir2.get_index(tiles.len(), line_length, pos)
                             == Some(current_position)
                         {
                             current_position = pos;
                             directions = vec![dir1.clone()];
-                            steps += 1;
-                            println!("{}: {}", steps, current_position);
+                            loop_positions.push(pos);
                             break;
                         }
                     }
                     Tile::Empty => continue,
-                    Tile::Start => return (steps + 1) / 2,
+                    Tile::Start => return loop_positions,
                 }
             }
         }
     }
+}
+
+fn one(tiles: &[Tile], line_length: usize) -> usize {
+    let loop_positions = get_loop(tiles, line_length);
+    (loop_positions.len() + 1) / 2
 }
 
 fn two() -> usize {

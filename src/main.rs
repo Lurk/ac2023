@@ -51,7 +51,6 @@ struct Cli {
 
 fn main() {
     let args = Cli::parse();
-    println!("{:?}", args);
     match args.command {
         Days::First(runner) => first::run(runner.path),
         Days::Second(runner) => second::run(&runner),
