@@ -10,6 +10,7 @@ mod ninth;
 mod second;
 mod seventh;
 mod sixth;
+mod tenth;
 mod third;
 mod utils;
 
@@ -37,6 +38,7 @@ enum Days {
     Seventh(Runner),
     Eighth(Runner),
     Ninth(Runner),
+    Tenth(Runner),
 }
 
 #[derive(Parser, Debug)]
@@ -49,6 +51,7 @@ struct Cli {
 
 fn main() {
     let args = Cli::parse();
+    println!("{:?}", args);
     match args.command {
         Days::First(runner) => first::run(runner.path),
         Days::Second(runner) => second::run(&runner),
@@ -59,5 +62,6 @@ fn main() {
         Days::Seventh(runner) => seventh::run(&runner),
         Days::Eighth(runner) => eighth::run(&runner),
         Days::Ninth(runner) => ninth::run(&runner),
+        Days::Tenth(runner) => tenth::run(&runner),
     }
 }
