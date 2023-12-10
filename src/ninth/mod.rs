@@ -9,7 +9,6 @@ fn get_steps(input: Vec<i64>) -> Vec<Vec<i64>> {
                 .unwrap()
                 .windows(2)
                 .map(|x| x[1] - x[0])
-                .skip(0)
                 .collect(),
         );
     }

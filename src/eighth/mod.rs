@@ -5,13 +5,13 @@ use crate::{
     Runner,
 };
 
-pub enum LineType {
+enum LineType {
     Direction(Vec<Direction>),
     Node(Arc<str>, Arc<str>, Arc<str>),
     Empty,
 }
 
-pub enum Direction {
+enum Direction {
     Left,
     Right,
 }
@@ -34,7 +34,7 @@ impl Map {
         }
     }
 
-    pub fn replace_steps(&mut self, steps: Vec<Direction>) {
+    fn replace_steps(&mut self, steps: Vec<Direction>) {
         self.steps = steps;
     }
 

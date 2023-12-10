@@ -138,4 +138,44 @@ ac2023 ninth <path to input> one
 ac2023 ninth <path to input> two
 ```
 
+## Day 10
+
+For some reason instead of following the trail I was trying to clear the map from unconnected pipes. Spent a few hours 
+before I realized that there is easier way to solve part one. 
+
+Part two. 
+
+Ok, first idea, since we have our loop of pipes from part one. Lets replace all tiles that are not connected to main
+loop with zeroes. 
+
+I think I can simplify the loop itself by shortening 180 turns. For example this transformation: 
+
+```
+0000
+0F70
+0||0
+```
+
+Can be:
+
+```
+0000
+0..0
+0F70
+```
+Without loosing information.
+
+That was bad idea. I spent too much time implementing it before realizing that it does not lead me anywhere. Better 
+one is to follow the loop, and mark left/right. One of the sides will be inside one outside. Fill the void and count. 
+
+End result is ugly as hell, but gives correct result. 
+
+```shell
+ac2023 tenth <path to input> one
+```
+
+```shell
+ac2023 tenth <path to input> two
+```
+
 
