@@ -1,3 +1,5 @@
+pub mod direction;
+
 use std::{
     fs::File,
     io::{BufRead, BufReader},

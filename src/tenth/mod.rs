@@ -1,56 +1,9 @@
 use std::{fmt::Display, usize};
 
-use crate::{utils::get_non_empty_lines, Part, Runner};
-
-#[derive(Debug, PartialEq, Clone)]
-enum Direction {
-    North,
-    East,
-    South,
-    West,
-}
-
-impl Direction {
-    fn get_index(&self, total_len: usize, line_length: usize, index: usize) -> Option<usize> {
-        match self {
-            Direction::North => {
-                if index >= line_length {
-                    Some(index - line_length)
-                } else {
-                    None
-                }
-            }
-            Direction::East => {
-                if index % line_length != line_length - 1 {
-                    Some(index + 1)
-                } else {
-                    None
-                }
-            }
-            Direction::South => {
-                if index < total_len - line_length {
-                    Some(index + line_length)
-                } else {
-                    None
-                }
-            }
-            Direction::West => {
-                if index % line_length != 0 {
-                    Some(index - 1)
-                } else {
-                    None
-                }
-            }
-        }
-    }
-}
-
-const DIRECTIONS: [Direction; 4] = [
-    Direction::North,
-    Direction::East,
-    Direction::South,
-    Direction::West,
-];
+use crate::{
+    utils::{direction::Direction, get_non_empty_lines},
+    Part, Runner,
+};
 
 #[derive(Debug, PartialEq, Clone)]
 enum Tile {
@@ -59,6 +12,62 @@ enum Tile {
     Pipe(Direction, Direction),
     Left,
     Right,
+}
+
+impl Tile {
+    fn to_left_right(&self, direction: Direction) -> (Vec<Direction>, Vec<Direction>) {
+        match direction {
+            Direction::East => match self {
+                Tile::Pipe(Direction::West, Direction::East) => {
+                    (vec![Direction::North], vec![Direction::South])
+                }
+                Tile::Pipe(Direction::North, Direction::West) => {
+                    (vec![], vec![Direction::East, Direction::South])
+                }
+                Tile::Pipe(Direction::West, Direction::South) => {
+                    (vec![Direction::North, Direction::East], vec![])
+                }
+                _ => panic!("Invalid tile going east"),
+            },
+            Direction::South => match self {
+                Tile::Pipe(Direction::North, Direction::South) => {
+                    (vec![Direction::East], vec![Direction::West])
+                }
+                Tile::Pipe(Direction::North, Direction::East) => {
+                    (vec![], vec![Direction::South, Direction::West])
+                }
+                Tile::Pipe(Direction::North, Direction::West) => {
+                    (vec![Direction::South, Direction::East], vec![])
+                }
+                _ => panic!("Invalid tile going south"),
+            },
+            Direction::West => match self {
+                Tile::Pipe(Direction::West, Direction::East) => {
+                    (vec![Direction::South], vec![Direction::North])
+                }
+                Tile::Pipe(Direction::North, Direction::East) => {
+                    (vec![Direction::North, Direction::West], vec![])
+                }
+                Tile::Pipe(Direction::East, Direction::South) => {
+                    (vec![], vec![Direction::North, Direction::West])
+                }
+                _ => panic!("Invalid tile going west"),
+            },
+            Direction::North => match self {
+                Tile::Pipe(Direction::North, Direction::South) => {
+                    (vec![Direction::West], vec![Direction::East])
+                }
+                Tile::Pipe(Direction::West, Direction::South) => {
+                    (vec![], vec![Direction::North, Direction::East])
+                }
+                Tile::Pipe(Direction::East, Direction::South) => {
+                    (vec![Direction::North, Direction::West], vec![])
+                }
+                _ => panic!("Invalid tile going north"),
+            },
+            _ => panic!("Invalid direction"),
+        }
+    }
 }
 
 impl From<char> for Tile {
@@ -72,23 +81,6 @@ impl From<char> for Tile {
             'F' => Self::Pipe(Direction::East, Direction::South),
             '.' => Self::Empty,
             'S' => Self::Start,
-
-            _ => panic!("Invalid tile"),
-        }
-    }
-}
-
-impl From<Tile> for char {
-    fn from(tile: Tile) -> Self {
-        match tile {
-            Tile::Empty => '.',
-            Tile::Start => 'S',
-            Tile::Pipe(Direction::North, Direction::South) => '|',
-            Tile::Pipe(Direction::West, Direction::East) => '-',
-            Tile::Pipe(Direction::North, Direction::East) => 'L',
-            Tile::Pipe(Direction::North, Direction::West) => 'J',
-            Tile::Pipe(Direction::West, Direction::South) => '7',
-            Tile::Pipe(Direction::East, Direction::South) => 'F',
             _ => panic!("Invalid tile"),
         }
     }
@@ -111,6 +103,13 @@ impl Display for Tile {
         }
     }
 }
+
+const DIRECTIONS: [Direction; 4] = [
+    Direction::North,
+    Direction::East,
+    Direction::South,
+    Direction::West,
+];
 
 fn get_loop(tiles: &[Tile], line_length: usize) -> Vec<usize> {
     let mut current_position = tiles.iter().position(|tile| tile == &Tile::Start).unwrap();
@@ -150,82 +149,26 @@ fn one(tiles: &[Tile], line_length: usize) -> usize {
     loop_positions.len() / 2
 }
 
-fn two(tiles: &[Tile], line_length: usize) -> usize {
-    let loop_positions = get_loop(tiles, line_length);
-    let mut tiles: Vec<Tile> = tiles
+fn two(original_tiles: &[Tile], line_length: usize) -> usize {
+    let loop_positions = get_loop(original_tiles, line_length);
+    let mut tiles: Vec<Tile> = vec![Tile::Empty; original_tiles.len()];
+    loop_positions
         .iter()
-        .enumerate()
-        .map(|(i, x)| {
-            if loop_positions.contains(&i) {
-                x.clone()
-            } else {
-                Tile::Empty
-            }
-        })
-        .collect();
+        .for_each(|x| tiles[*x] = original_tiles[*x].clone());
 
     let mut previous_position = loop_positions[0];
-    let mut to_check: (Vec<Direction>, Vec<Direction>);
     for position in loop_positions.iter().skip(1) {
-        if position > &previous_position && position - previous_position == 1 {
-            // East - J 7
-            to_check = match tiles[*position] {
-                Tile::Pipe(Direction::West, Direction::East) => {
-                    (vec![Direction::North], vec![Direction::South])
-                }
-                Tile::Pipe(Direction::North, Direction::West) => {
-                    (vec![], vec![Direction::East, Direction::South])
-                }
-                Tile::Pipe(Direction::West, Direction::South) => {
-                    (vec![Direction::North, Direction::East], vec![])
-                }
-                _ => panic!("Invalid tile going east"),
-            };
+        let to_check = if position > &previous_position && position - previous_position == 1 {
+            tiles[*position].to_left_right(Direction::East)
         } else if position > &previous_position && position - previous_position == line_length {
-            // South | L J
-            to_check = match tiles[*position] {
-                Tile::Pipe(Direction::North, Direction::South) => {
-                    (vec![Direction::East], vec![Direction::West])
-                }
-                Tile::Pipe(Direction::North, Direction::East) => {
-                    (vec![], vec![Direction::South, Direction::West])
-                }
-                Tile::Pipe(Direction::North, Direction::West) => {
-                    (vec![Direction::South, Direction::East], vec![])
-                }
-                _ => panic!("Invalid tile going south"),
-            };
+            tiles[*position].to_left_right(Direction::South)
         } else if &previous_position > position && previous_position - position == 1 {
-            // West - L F
-            to_check = match tiles[*position] {
-                Tile::Pipe(Direction::West, Direction::East) => {
-                    (vec![Direction::South], vec![Direction::North])
-                }
-                Tile::Pipe(Direction::North, Direction::East) => {
-                    (vec![Direction::North, Direction::West], vec![])
-                }
-                Tile::Pipe(Direction::East, Direction::South) => {
-                    (vec![], vec![Direction::North, Direction::West])
-                }
-                _ => panic!("Invalid tile going west"),
-            };
+            tiles[*position].to_left_right(Direction::West)
         } else if &previous_position > position && previous_position - position == line_length {
-            // North | 7 F
-            to_check = match tiles[*position] {
-                Tile::Pipe(Direction::North, Direction::South) => {
-                    (vec![Direction::West], vec![Direction::East])
-                }
-                Tile::Pipe(Direction::West, Direction::South) => {
-                    (vec![], vec![Direction::North, Direction::East])
-                }
-                Tile::Pipe(Direction::East, Direction::South) => {
-                    (vec![Direction::North, Direction::West], vec![])
-                }
-                _ => panic!("Invalid tile going north"),
-            };
+            tiles[*position].to_left_right(Direction::North)
         } else {
             panic!("Invalid loop");
-        }
+        };
 
         previous_position = *position;
 
@@ -279,19 +222,4 @@ pub fn run(runner: &Runner) {
         Part::Two => two(&tiles, line_length),
     };
     println!("result: {}", result)
-}
-
-#[cfg(test)]
-mod tests {
-
-    use super::Direction;
-
-    #[test]
-    fn direction_get_index() {
-        assert_eq!(Direction::North.get_index(9, 3, 4), Some(1));
-        assert_eq!(Direction::East.get_index(9, 3, 4), Some(5));
-        assert_eq!(Direction::South.get_index(9, 3, 4), Some(7));
-        assert_eq!(Direction::West.get_index(9, 3, 4), Some(3));
-        assert_eq!(Direction::North.get_index(9, 3, 1), None);
-    }
 }

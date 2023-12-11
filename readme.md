@@ -178,4 +178,10 @@ ac2023 tenth <path to input> one
 ac2023 tenth <path to input> two
 ```
 
+Added some love to it before starting next day. Also the way I did pipes sucks. 
+
+```rust
+Tile::Pipe(Direction::North, Direction::East)
+```
+That's an `L` pipe. Yeah, I know. Not obvious at all. 
 
