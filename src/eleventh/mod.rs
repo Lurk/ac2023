@@ -9,6 +9,7 @@ use crate::{
 };
 
 #[derive(Debug, PartialEq, Clone)]
+#[repr(u8)]
 enum Tile {
     Empty,
     Galaxy,
@@ -37,25 +38,12 @@ fn parse_line(line: &str) -> Vec<Tile> {
     line.chars().map(|c| c.into()).collect()
 }
 
-fn get_empty_rows_numbers(map: &Map<Tile>) -> Vec<usize> {
-    map.get_rows()
-        .enumerate()
-        .fold(Vec::new(), |mut acc: Vec<usize>, (index, row)| {
-            if row.iter().all(|tile| *tile == Tile::Empty) {
-                acc.push(index);
-            }
-            acc
-        })
-}
-
-fn double_empty_rows(map: &mut Map<Tile>) {
-    let rows = get_empty_rows_numbers(map);
+fn multiply_empty_rows(map: &mut Map<Tile>, n: usize) {
     let chunks: Vec<Vec<Tile>> = map
         .get_rows()
-        .enumerate()
-        .flat_map(|(i, x)| {
-            if rows.contains(&i) {
-                vec![x.to_vec(), vec![Tile::Empty; map.line_length]]
+        .flat_map(|x| {
+            if x.iter().all(|tile| *tile == Tile::Empty) {
+                vec![vec![Tile::Empty; map.line_length]; n]
             } else {
                 vec![x.to_vec()]
             }
@@ -66,36 +54,35 @@ fn double_empty_rows(map: &mut Map<Tile>) {
     map.tiles.extend(chunks.iter().flatten().cloned());
 }
 
-fn get_empty_columns_numbers(map: &Map<Tile>) -> Vec<usize> {
-    map.get_columns()
-        .enumerate()
-        .fold(Vec::new(), |mut acc: Vec<usize>, (index, column)| {
-            if column.iter().all(|tile| *tile == Tile::Empty) {
-                acc.push(index);
+fn multiply_empty_columns(map: &mut Map<Tile>, n: usize) {
+    // let columns = get_empty_columns_numbers(map);
+    let mut amount = 0;
+    let chunks: Vec<Vec<Tile>> = map
+        .get_columns()
+        .flat_map(|x| {
+            if x.iter().all(|tile| *tile == Tile::Empty) {
+                amount += 1;
+                vec![vec![Tile::Empty; x.len()]; n]
+            } else {
+                vec![x.to_vec()]
             }
-            acc
         })
-}
-
-fn double_empty_columns(map: &mut Map<Tile>) {
-    let columns = get_empty_columns_numbers(map);
-    let mut chunks: Vec<Vec<Tile>> = map.get_columns().collect();
-    for (i, column) in columns.iter().enumerate() {
-        chunks.insert(*column + i, vec![Tile::Empty; chunks[0].len()]);
-    }
+        .collect();
     let mut tiles = Vec::new();
     for i in 0..chunks[0].len() {
         for chunk in &chunks {
             tiles.push(chunk[i].clone());
         }
     }
-
     map.tiles.clear();
     map.tiles.extend(tiles);
-    map.line_length += columns.len();
+    map.line_length += amount;
 }
 
-fn one(map: &Map<Tile>) -> usize {
+fn one(mut map: Map<Tile>) -> usize {
+    multiply_empty_rows(&mut map, 2);
+    multiply_empty_columns(&mut map, 2);
+
     let galaxies: Vec<usize> = map
         .tiles
         .iter()
@@ -113,8 +100,25 @@ fn one(map: &Map<Tile>) -> usize {
     permutations.iter().map(|p| map.distance(p[0], p[1])).sum()
 }
 
-fn two() -> usize {
-    0
+fn two(mut map: Map<Tile>) -> usize {
+    multiply_empty_rows(&mut map, 1_000_000);
+    multiply_empty_columns(&mut map, 1_000_000);
+
+    let galaxies: Vec<usize> = map
+        .tiles
+        .iter()
+        .enumerate()
+        .filter(|(_, tile)| **tile == Tile::Galaxy)
+        .map(|(index, _)| index)
+        .collect();
+    let mut permutations: Vec<Vec<usize>> = Vec::new();
+    for i in 0..galaxies.len() - 1 {
+        for j in i + 1..galaxies.len() {
+            permutations.push(vec![galaxies[i], galaxies[j]]);
+        }
+    }
+
+    permutations.iter().map(|p| map.distance(p[0], p[1])).sum()
 }
 
 pub fn run(runner: &Runner) {
@@ -126,13 +130,11 @@ pub fn run(runner: &Runner) {
         })
         .collect();
 
-    let mut map = Map { tiles, line_length };
-    double_empty_rows(&mut map);
-    double_empty_columns(&mut map);
+    let map = Map { tiles, line_length };
 
     let result = match runner.part {
-        Part::One => one(&map),
-        Part::Two => two(),
+        Part::One => one(map),
+        Part::Two => two(map),
     };
     println!("result: {}", result)
 }
@@ -144,48 +146,34 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_get_empty_rows_numbers() {
-        let map: Map<Tile> = "...\n###\n...".into();
-        let empty_rows = get_empty_rows_numbers(&map);
-        assert_eq!(empty_rows, vec![0, 2]);
-    }
-
-    #[test]
     fn test_double_empty_rows() {
         let mut map: Map<Tile> = "#..\n...\n..#".into();
-        double_empty_rows(&mut map);
+        multiply_empty_rows(&mut map, 2);
         assert_eq!(map.to_string(), "#..\n...\n...\n..#");
-    }
-
-    #[test]
-    fn test_get_empty_columns_numbers() {
-        let map: Map<Tile> = "#..\n...\n..#".into();
-        let empty_columns = get_empty_columns_numbers(&map);
-        assert_eq!(empty_columns, vec![1]);
     }
 
     #[test]
     fn test_double_empty_columns() {
         let mut map: Map<Tile> = ".#.#\n.#.#\n#..#".into();
-        double_empty_columns(&mut map);
+        multiply_empty_columns(&mut map, 2);
         assert_eq!(map.to_string(), ".#..#\n.#..#\n#...#");
     }
 
     #[test]
     fn test_one() {
         let map: Map<Tile> = "#..\n...\n..#".into();
-        assert_eq!(one(&map), 4);
+        assert_eq!(one(map), 6);
     }
 
     #[test]
     fn test_one_bigger() {
         let map: Map<Tile> = ".#..\n#..#\n...#\n....".into();
-        assert_eq!(one(&map), 17);
+        assert_eq!(one(map), 21);
     }
 
     #[test]
     fn test_input() {
-        let mut input: Map<Tile> = "
+        let input: Map<Tile> = "
 ...#......
 .......#..
 #.........
@@ -198,26 +186,6 @@ mod tests {
 #...#....."
             .into();
 
-        let larger: Map<Tile> = "
-....#........
-.........#...
-#............
-.............
-.............
-........#....
-.#...........
-............#
-.............
-.............
-.........#...
-#....#......."
-            .into();
-
-        double_empty_rows(&mut input);
-        double_empty_columns(&mut input);
-
-        assert_eq!(input.to_string(), larger.to_string());
-
-        assert_eq!(one(&input), 374);
+        assert_eq!(one(input), 374);
     }
 }

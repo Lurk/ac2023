@@ -166,7 +166,8 @@ Can be:
 Without loosing information.
 
 That was bad idea. I spent too much time implementing it before realizing that it does not lead me anywhere. Better 
-one is to follow the loop, and mark left/right. One of the sides will be inside one outside. Fill the void and count. 
+one is to follow the loop, and mark left/right. One of the sides will be inside and the other outside. Fill the void 
+and count. 
 
 End result is ugly as hell, but gives correct result. 
 
@@ -187,5 +188,16 @@ That's an `L` pipe. Yeah, I know. Not obvious at all.
 
 
 ## Day 11
+
+
+Somehow columns are hard. Spent too much time implementing universe expansion. Everything else was kind of easy.
+
+Part two does not fit into memory. Even if I make it fit with `bitvec` or similar bit manipulating library the amount 
+of data to process will be too big to process in sane time. 
+
+Current idea is to expand the universe few times. Find the speed at which galaxies are moving away from each other. 
+Knowing the speed end distance should be easy to find.
+
+I am already lagging one day behind, so the best move right now is go to sleep. 
 
 
