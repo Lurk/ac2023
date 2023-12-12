@@ -1,4 +1,5 @@
 pub mod direction;
+pub mod map;
 
 use std::{
     fs::File,

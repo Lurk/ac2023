@@ -4,7 +4,7 @@ use std::{
 };
 
 use crate::{
-    utils::{direction::Direction, get_non_empty_lines},
+    utils::{get_non_empty_lines, map::Map},
     Part, Runner,
 };
 
@@ -37,77 +37,67 @@ fn parse_line(line: &str) -> Vec<Tile> {
     line.chars().map(|c| c.into()).collect()
 }
 
-fn get_empty_rows_numbers(tiles: &[Tile], line_length: usize) -> Vec<usize> {
-    tiles
-        .chunks(line_length)
+fn get_empty_rows_numbers(map: &Map<Tile>) -> Vec<usize> {
+    map.get_rows()
         .enumerate()
-        .fold(Vec::new(), |mut acc: Vec<usize>, (index, chunk)| {
-            if chunk.iter().all(|tile| *tile == Tile::Empty) {
+        .fold(Vec::new(), |mut acc: Vec<usize>, (index, row)| {
+            if row.iter().all(|tile| *tile == Tile::Empty) {
                 acc.push(index);
             }
             acc
         })
 }
 
-fn double_empty_rows(tiles: &mut Vec<Tile>, line_length: usize) -> usize {
-    let rows = get_empty_rows_numbers(&tiles, line_length);
-    for row in rows.iter() {
-        let i = (row + 1) * line_length;
-        tiles
-            .splice(i..i, vec![Tile::Empty; line_length].iter().cloned())
-            .for_each(drop);
-    }
-    rows.len()
+fn double_empty_rows(map: &mut Map<Tile>) {
+    let rows = get_empty_rows_numbers(map);
+    let chunks: Vec<Vec<Tile>> = map
+        .get_rows()
+        .enumerate()
+        .flat_map(|(i, x)| {
+            if rows.contains(&i) {
+                vec![x.to_vec(), vec![Tile::Empty; map.line_length]]
+            } else {
+                vec![x.to_vec()]
+            }
+        })
+        .collect();
+
+    map.tiles.clear();
+    map.tiles.extend(chunks.iter().flatten().cloned());
 }
 
-fn get_empty_columns_numbers(tiles: &[Tile], line_length: usize) -> Vec<usize> {
-    let mut empty_columns: Vec<usize> = Vec::new();
-    for i in 0..line_length {
-        let mut current = i;
-        if tiles[i] == Tile::Empty {
-            let mut all = true;
-            while let Some(pos) = Direction::South.get_index(tiles.len(), line_length, current) {
-                current = pos;
-                if tiles[pos] != Tile::Empty {
-                    all = false;
-                    break;
-                }
+fn get_empty_columns_numbers(map: &Map<Tile>) -> Vec<usize> {
+    map.get_columns()
+        .enumerate()
+        .fold(Vec::new(), |mut acc: Vec<usize>, (index, column)| {
+            if column.iter().all(|tile| *tile == Tile::Empty) {
+                acc.push(index);
             }
-            if all {
-                empty_columns.push(i);
-            }
+            acc
+        })
+}
+
+fn double_empty_columns(map: &mut Map<Tile>) {
+    let columns = get_empty_columns_numbers(map);
+    let mut chunks: Vec<Vec<Tile>> = map.get_columns().collect();
+    for (i, column) in columns.iter().enumerate() {
+        chunks.insert(*column + i, vec![Tile::Empty; chunks[0].len()]);
+    }
+    let mut tiles = Vec::new();
+    for i in 0..chunks[0].len() {
+        for chunk in &chunks {
+            tiles.push(chunk[i].clone());
         }
     }
-    empty_columns
+
+    map.tiles.clear();
+    map.tiles.extend(tiles);
+    map.line_length += columns.len();
 }
 
-fn double_empty_columns(tiles: &mut Vec<Tile>, line_length: usize) -> usize {
-    let columns = get_empty_columns_numbers(&tiles, line_length);
-    println!("columns: {:?}", columns);
-    let mut chunks: Vec<Vec<Tile>> = tiles.chunks(line_length).map(|x| x.to_vec()).collect();
-    for column in columns.iter() {
-        for chunk in chunks.iter_mut() {
-            chunk.insert(*column, Tile::Empty);
-        }
-    }
-
-    let ridiculous: Vec<Tile> = chunks.iter().cloned().flat_map(|x| x).collect();
-    tiles.clear();
-    tiles.extend(ridiculous);
-
-    columns.len()
-}
-
-fn distance(a: usize, b: usize, line_length: usize) -> usize {
-    let a_x = a % line_length;
-    let a_y = a / line_length;
-    let b_x = b % line_length;
-    let b_y = b / line_length;
-    ((a_x as isize - b_x as isize).abs() + (a_y as isize - b_y as isize).abs()) as usize
-}
-
-fn one(map: &[Tile], line_length: usize) -> usize {
+fn one(map: &Map<Tile>) -> usize {
     let galaxies: Vec<usize> = map
+        .tiles
         .iter()
         .enumerate()
         .filter(|(_, tile)| **tile == Tile::Galaxy)
@@ -120,10 +110,7 @@ fn one(map: &[Tile], line_length: usize) -> usize {
         }
     }
 
-    permutations
-        .iter()
-        .map(|p| distance(p[0], p[1], line_length))
-        .sum()
+    permutations.iter().map(|p| map.distance(p[0], p[1])).sum()
 }
 
 fn two() -> usize {
@@ -132,18 +119,19 @@ fn two() -> usize {
 
 pub fn run(runner: &Runner) {
     let mut line_length: usize = 0;
-    let mut map: Vec<Tile> = get_non_empty_lines(&runner.path)
+    let tiles: Vec<Tile> = get_non_empty_lines(&runner.path)
         .flat_map(|line| {
             line_length = line.trim().len();
             parse_line(line.trim())
         })
         .collect();
 
-    double_empty_rows(&mut map, line_length);
-    line_length += double_empty_columns(&mut map, line_length);
+    let mut map = Map { tiles, line_length };
+    double_empty_rows(&mut map);
+    double_empty_columns(&mut map);
 
     let result = match runner.part {
-        Part::One => one(&map, line_length),
+        Part::One => one(&map),
         Part::Two => two(),
     };
     println!("result: {}", result)
@@ -157,126 +145,47 @@ mod tests {
 
     #[test]
     fn test_get_empty_rows_numbers() {
-        #[rustfmt::skip]
-        let tiles: Vec<Tile> = vec![
-            Tile::Empty, Tile::Empty,  Tile::Empty,
-            Tile::Galaxy,Tile::Galaxy, Tile::Galaxy,
-            Tile::Empty, Tile::Empty,  Tile::Empty,
-        ];
-        let line_length = 3;
-        let empty_rows = get_empty_rows_numbers(&tiles, line_length);
+        let map: Map<Tile> = "...\n###\n...".into();
+        let empty_rows = get_empty_rows_numbers(&map);
         assert_eq!(empty_rows, vec![0, 2]);
     }
 
     #[test]
     fn test_double_empty_rows() {
-        #[rustfmt::skip]
-        let mut tiles: Vec<Tile> = vec![
-            Tile::Galaxy, Tile::Empty, Tile::Empty,
-            Tile::Empty,Tile::Empty,Tile::Empty,
-            Tile::Empty, Tile::Empty, Tile::Galaxy,
-        ];
-        let line_length = 3;
-        double_empty_rows(&mut tiles, line_length);
-        #[rustfmt::skip]
-        assert_eq!(
-            tiles,
-            vec![
-                Tile::Galaxy, Tile::Empty, Tile::Empty,
-                Tile::Empty, Tile::Empty, Tile::Empty,
-                Tile::Empty, Tile::Empty, Tile::Empty,
-                Tile::Empty, Tile::Empty, Tile::Galaxy,
-            ]
-        );
+        let mut map: Map<Tile> = "#..\n...\n..#".into();
+        double_empty_rows(&mut map);
+        assert_eq!(map.to_string(), "#..\n...\n...\n..#");
     }
 
     #[test]
     fn test_get_empty_columns_numbers() {
-        #[rustfmt::skip]
-        let tiles: Vec<Tile> = vec![
-            Tile::Galaxy, Tile::Empty, Tile::Empty,
-            Tile::Empty,Tile::Empty, Tile::Empty,
-            Tile::Empty, Tile::Empty, Tile::Galaxy,
-        ];
-        let line_length = 3;
-        let empty_columns = get_empty_columns_numbers(&tiles, line_length);
+        let map: Map<Tile> = "#..\n...\n..#".into();
+        let empty_columns = get_empty_columns_numbers(&map);
         assert_eq!(empty_columns, vec![1]);
     }
 
     #[test]
     fn test_double_empty_columns() {
-        #[rustfmt::skip]
-        let mut tiles: Vec<Tile> = vec![
-            Tile::Empty, Tile::Galaxy, Tile::Empty, Tile::Galaxy,
-            Tile::Empty,Tile::Galaxy, Tile::Empty, Tile::Galaxy,
-            Tile::Galaxy, Tile::Empty, Tile::Empty, Tile::Galaxy,
-        ];
-        let line_length = 4;
-        double_empty_columns(&mut tiles, line_length);
-        #[rustfmt::skip]
-        assert_eq!(
-            map_to_str(&tiles, 5),
-            map_to_str(&[
-                Tile::Empty, Tile::Galaxy, Tile::Empty, Tile::Empty, Tile::Galaxy,
-                Tile::Empty,Tile::Galaxy, Tile::Empty, Tile::Empty, Tile::Galaxy,
-                Tile::Galaxy, Tile::Empty, Tile::Empty, Tile::Empty, Tile::Galaxy,
-            ], 5)
-        );
+        let mut map: Map<Tile> = ".#.#\n.#.#\n#..#".into();
+        double_empty_columns(&mut map);
+        assert_eq!(map.to_string(), ".#..#\n.#..#\n#...#");
     }
 
     #[test]
     fn test_one() {
-        #[rustfmt::skip]
-        let tiles: Vec<Tile> = vec![
-            Tile::Galaxy, Tile::Empty, Tile::Empty,
-            Tile::Empty,Tile::Empty, Tile::Empty,
-            Tile::Galaxy, Tile::Empty, Tile::Galaxy,
-        ];
-
-        assert_eq!(one(&tiles, 3), 8);
+        let map: Map<Tile> = "#..\n...\n..#".into();
+        assert_eq!(one(&map), 4);
     }
 
     #[test]
     fn test_one_bigger() {
-        #[rustfmt::skip]
-        let tiles: Vec<Tile> =  vec![
-            Tile::Empty, Tile::Galaxy, Tile::Empty, Tile::Empty,
-            Tile::Galaxy,Tile::Empty, Tile::Empty, Tile::Galaxy,
-            Tile::Empty, Tile::Empty, Tile::Empty, Tile::Galaxy,
-            Tile::Empty, Tile::Empty, Tile::Empty, Tile::Empty,
-        ];
-
-        assert_eq!(one(&tiles, 4), 17);
-    }
-
-    fn map_to_str(map: &[Tile], line_length: usize) -> String {
-        map.chunks(line_length)
-            .map(|chunk| {
-                chunk
-                    .iter()
-                    .map(|tile| format!("{}", tile))
-                    .collect::<Vec<String>>()
-                    .join("")
-            })
-            .collect::<Vec<String>>()
-            .join("\n")
-    }
-
-    fn str_to_tiles(input: &str) -> (Vec<Tile>, usize) {
-        let mut line_length: usize = 0;
-        let tiles: Vec<Tile> = input
-            .split('\n')
-            .flat_map(|line| {
-                line_length = line.trim().len();
-                parse_line(line.trim())
-            })
-            .collect();
-        (tiles, line_length)
+        let map: Map<Tile> = ".#..\n#..#\n...#\n....".into();
+        assert_eq!(one(&map), 17);
     }
 
     #[test]
     fn test_input() {
-        let input = "
+        let mut input: Map<Tile> = "
 ...#......
 .......#..
 #.........
@@ -286,9 +195,10 @@ mod tests {
 .........#
 ..........
 .......#..
-#...#.....";
+#...#....."
+            .into();
 
-        let larger = "
+        let larger: Map<Tile> = "
 ....#........
 .........#...
 #............
@@ -300,15 +210,14 @@ mod tests {
 .............
 .............
 .........#...
-#....#.......";
+#....#......."
+            .into();
 
-        let (mut map, mut line_length) = str_to_tiles(input);
-        println!("line_length: {}", line_length);
-        double_empty_rows(&mut map, line_length);
-        line_length += double_empty_columns(&mut map, line_length);
+        double_empty_rows(&mut input);
+        double_empty_columns(&mut input);
 
-        assert_eq!(map_to_str(&map, line_length), larger);
+        assert_eq!(input.to_string(), larger.to_string());
 
-        assert_eq!(one(&map, line_length), 374);
+        assert_eq!(one(&input), 374);
     }
 }
