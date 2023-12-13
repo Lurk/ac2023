@@ -198,6 +198,21 @@ of data to process will be too big to process in sane time.
 Current idea is to expand the universe few times. Find the speed at which galaxies are moving away from each other. 
 Knowing the speed end distance should be easy to find.
 
-I am already lagging one day behind, so the best move right now is go to sleep. 
+I am already lagging one day behind, so the best move right now is go to sleep.
+
+That Idea about speed was bad. I spend too much time figuring out how to measure rate of expansion, and none of my 
+measurements made sense. Anyway, working idea - instead of actually expanding the universe you can gather position of 
+galaxies and just manipulate those positions. 
+
+Will not rewrite first part. 
+
+```shell
+ac2023 eleventh <path to input> one
+```
+
+```shell
+ac2023 eleventh <path to input> two
+```
+
 
 

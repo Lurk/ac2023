@@ -39,6 +39,10 @@ impl<T: Display + PartialEq + Clone> Map<T> {
         self.line_length = columns.len();
     }
 
+    pub fn to_xy(&self, index: usize) -> (usize, usize) {
+        (index % self.line_length, index / self.line_length)
+    }
+
     pub fn distance(&self, a: usize, b: usize) -> usize {
         let a_x = a % self.line_length;
         let a_y = a / self.line_length;
@@ -81,5 +85,25 @@ where
                 .collect(),
             line_length,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_get_xy() {
+        let map = Map {
+            tiles: vec!['a', 'b', 'c', 'd', 'e', 'f'],
+            line_length: 3,
+        };
+
+        assert_eq!(map.to_xy(0), (0, 0));
+        assert_eq!(map.to_xy(1), (1, 0));
+        assert_eq!(map.to_xy(2), (2, 0));
+        assert_eq!(map.to_xy(3), (0, 1));
+        assert_eq!(map.to_xy(4), (1, 1));
+        assert_eq!(map.to_xy(5), (2, 1));
     }
 }

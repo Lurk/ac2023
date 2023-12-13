@@ -3,17 +3,15 @@ use std::{
     usize,
 };
 
-use nanoid::nanoid;
-
 use crate::{
-    utils::{get_non_empty_lines, map::Map},
+    utils::{get_non_empty_lines, map::Map, unique_permutations},
     Part, Runner,
 };
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Eq, Hash)]
 enum Tile {
     Empty,
-    Galaxy(String),
+    Galaxy,
 }
 
 impl Tile {
@@ -26,7 +24,7 @@ impl Display for Tile {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
             Tile::Empty => write!(f, "."),
-            Tile::Galaxy(_) => write!(f, "#"),
+            Tile::Galaxy => write!(f, "#"),
         }
     }
 }
@@ -35,7 +33,7 @@ impl From<char> for Tile {
     fn from(c: char) -> Self {
         match c {
             '.' => Tile::Empty,
-            '#' => Tile::Galaxy(nanoid!()),
+            '#' => Tile::Galaxy,
             _ => panic!("invalid tile"),
         }
     }
@@ -85,35 +83,62 @@ fn one(mut map: Map<Tile>) -> usize {
         .filter(|(_, tile)| !tile.is_empty())
         .map(|(index, _)| index)
         .collect();
-    let mut permutations: Vec<Vec<usize>> = Vec::new();
-    for i in 0..galaxies.len() - 1 {
-        for j in i + 1..galaxies.len() {
-            permutations.push(vec![galaxies[i], galaxies[j]]);
-        }
-    }
 
+    let permutations: Vec<Vec<usize>> = unique_permutations(&galaxies);
     permutations.iter().map(|p| map.distance(p[0], p[1])).sum()
 }
 
-fn two(mut map: Map<Tile>) -> usize {
-    multiply_empty_rows(&mut map, 1_000_000);
-    multiply_empty_columns(&mut map, 1_000_000);
+#[derive(Debug, PartialEq, Clone, Eq, Hash)]
+struct Galaxy {
+    col: usize,
+    row: usize,
+}
 
-    let galaxies: Vec<usize> = map
+fn two(map: Map<Tile>) -> usize {
+    let n = 1_000_000;
+    let mut galaxies: Vec<Galaxy> = map
         .tiles
         .iter()
         .enumerate()
         .filter(|(_, tile)| !tile.is_empty())
+        .map(|(index, _)| {
+            let (col, row) = map.to_xy(index);
+            Galaxy { col, row }
+        })
+        .collect();
+
+    let emty_rows: Vec<usize> = map
+        .get_rows()
+        .enumerate()
+        .filter(|(_, row)| row.iter().all(|tile| tile.is_empty()))
         .map(|(index, _)| index)
         .collect();
-    let mut permutations: Vec<Vec<usize>> = Vec::new();
-    for i in 0..galaxies.len() - 1 {
-        for j in i + 1..galaxies.len() {
-            permutations.push(vec![galaxies[i], galaxies[j]]);
-        }
-    }
 
-    permutations.iter().map(|p| map.distance(p[0], p[1])).sum()
+    let empty_columns: Vec<usize> = map
+        .get_columns()
+        .enumerate()
+        .filter(|(_, column)| column.iter().all(|tile| tile.is_empty()))
+        .map(|(index, _)| index)
+        .collect();
+
+    galaxies
+        .iter_mut()
+        .map(|galaxy| {
+            let empty_rows_count = emty_rows.iter().filter(|row| row < &&galaxy.row).count();
+            let empty_columns_count = empty_columns.iter().filter(|c| c < &&galaxy.col).count();
+            galaxy.row += empty_rows_count * (n - 1);
+            galaxy.col += empty_columns_count * (n - 1);
+        })
+        .for_each(drop);
+
+    unique_permutations(&galaxies)
+        .iter()
+        .map(|p| get_distance(&p[0], &p[1]))
+        .sum()
+}
+
+fn get_distance(g1: &Galaxy, g2: &Galaxy) -> usize {
+    ((g1.col as isize - g2.col as isize).abs() + (g1.row as isize - g2.row as isize).abs()) as usize
 }
 
 pub fn run(runner: &Runner) {
@@ -148,10 +173,24 @@ mod tests {
     }
 
     #[test]
+    fn test_triple_empty_rows() {
+        let mut map: Map<Tile> = "#..\n...\n..#".into();
+        multiply_empty_rows(&mut map, 3);
+        assert_eq!(map.to_string(), "#..\n...\n...\n...\n..#");
+    }
+
+    #[test]
     fn test_double_empty_columns() {
         let mut map: Map<Tile> = ".#.#\n.#.#\n#..#".into();
         multiply_empty_columns(&mut map, 2);
         assert_eq!(map.to_string(), ".#..#\n.#..#\n#...#");
+    }
+
+    #[test]
+    fn test_triple_empty_columns() {
+        let mut map: Map<Tile> = ".#.#\n.#.#\n#..#".into();
+        multiply_empty_columns(&mut map, 3);
+        assert_eq!(map.to_string(), ".#...#\n.#...#\n#....#");
     }
 
     #[test]
