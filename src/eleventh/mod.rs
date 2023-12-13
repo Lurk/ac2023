@@ -3,23 +3,30 @@ use std::{
     usize,
 };
 
+use nanoid::nanoid;
+
 use crate::{
     utils::{get_non_empty_lines, map::Map},
     Part, Runner,
 };
 
 #[derive(Debug, PartialEq, Clone)]
-#[repr(u8)]
 enum Tile {
     Empty,
-    Galaxy,
+    Galaxy(String),
+}
+
+impl Tile {
+    fn is_empty(&self) -> bool {
+        matches!(self, Tile::Empty)
+    }
 }
 
 impl Display for Tile {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
             Tile::Empty => write!(f, "."),
-            Tile::Galaxy => write!(f, "#"),
+            Tile::Galaxy(_) => write!(f, "#"),
         }
     }
 }
@@ -28,7 +35,7 @@ impl From<char> for Tile {
     fn from(c: char) -> Self {
         match c {
             '.' => Tile::Empty,
-            '#' => Tile::Galaxy,
+            '#' => Tile::Galaxy(nanoid!()),
             _ => panic!("invalid tile"),
         }
     }
@@ -39,44 +46,32 @@ fn parse_line(line: &str) -> Vec<Tile> {
 }
 
 fn multiply_empty_rows(map: &mut Map<Tile>, n: usize) {
-    let chunks: Vec<Vec<Tile>> = map
+    let chunks = map
         .get_rows()
         .flat_map(|x| {
-            if x.iter().all(|tile| *tile == Tile::Empty) {
+            if x.iter().all(|tile| tile.is_empty()) {
                 vec![vec![Tile::Empty; map.line_length]; n]
             } else {
                 vec![x.to_vec()]
             }
         })
         .collect();
-
-    map.tiles.clear();
-    map.tiles.extend(chunks.iter().flatten().cloned());
+    map.replace_rows(chunks);
 }
 
 fn multiply_empty_columns(map: &mut Map<Tile>, n: usize) {
-    // let columns = get_empty_columns_numbers(map);
-    let mut amount = 0;
     let chunks: Vec<Vec<Tile>> = map
         .get_columns()
         .flat_map(|x| {
-            if x.iter().all(|tile| *tile == Tile::Empty) {
-                amount += 1;
+            if x.iter().all(|tile| tile.is_empty()) {
                 vec![vec![Tile::Empty; x.len()]; n]
             } else {
                 vec![x.to_vec()]
             }
         })
         .collect();
-    let mut tiles = Vec::new();
-    for i in 0..chunks[0].len() {
-        for chunk in &chunks {
-            tiles.push(chunk[i].clone());
-        }
-    }
-    map.tiles.clear();
-    map.tiles.extend(tiles);
-    map.line_length += amount;
+
+    map.replace_columns(chunks);
 }
 
 fn one(mut map: Map<Tile>) -> usize {
@@ -87,7 +82,7 @@ fn one(mut map: Map<Tile>) -> usize {
         .tiles
         .iter()
         .enumerate()
-        .filter(|(_, tile)| **tile == Tile::Galaxy)
+        .filter(|(_, tile)| !tile.is_empty())
         .map(|(index, _)| index)
         .collect();
     let mut permutations: Vec<Vec<usize>> = Vec::new();
@@ -108,7 +103,7 @@ fn two(mut map: Map<Tile>) -> usize {
         .tiles
         .iter()
         .enumerate()
-        .filter(|(_, tile)| **tile == Tile::Galaxy)
+        .filter(|(_, tile)| !tile.is_empty())
         .map(|(index, _)| index)
         .collect();
     let mut permutations: Vec<Vec<usize>> = Vec::new();
