@@ -204,7 +204,7 @@ That Idea about speed was bad. I spend too much time figuring out how to measure
 measurements made sense. Anyway, working idea - instead of actually expanding the universe you can gather position of 
 galaxies and just manipulate those positions. 
 
-Will not rewrite first part. 
+Will not rewrite the first part. 
 
 ```shell
 ac2023 eleventh <path to input> one
@@ -214,5 +214,8 @@ ac2023 eleventh <path to input> one
 ac2023 eleventh <path to input> two
 ```
 
+## Day 12
+
+TBH, do not know where to start. Will start with a nap. 
 
 
