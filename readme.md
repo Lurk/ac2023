@@ -216,6 +216,14 @@ ac2023 eleventh <path to input> two
 
 ## Day 12
 
-TBH, do not know where to start. Will start with a nap. 
+TBH, do not know where to start. Will start with a nap.
+
+Part one was hard. I had no clue where to start until i saw this post: 
+[Solving Nonograms with 120 Lines of Code](https://towardsdatascience.com/solving-nonograms-with-120-lines-of-code-a7c6e0f627e4).
+
+Again. Tests are green, but result is wrong :(
+
+I gave up and looked at reddit. This was the test case that I was missing `??#???##?? 1,3`
+
 
 
