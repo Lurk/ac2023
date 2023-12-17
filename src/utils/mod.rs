@@ -44,26 +44,6 @@ pub fn unique_permutations<T: Clone>(list: &[T]) -> Vec<Vec<T>> {
     permutations
 }
 
-pub fn combinations<T: Clone>(list: &[T], size: usize) -> Vec<Vec<T>> {
-    if size == 0 {
-        return vec![];
-    }
-
-    if size == 1 {
-        return list.iter().map(|x| vec![x.clone()]).collect();
-    }
-
-    let mut c: Vec<Vec<T>> = Vec::new();
-    for i in 0..list.len() - size + 1 {
-        let mut sub_combinations = combinations(&list[i + 1..], size - 1);
-        for sub_combination in sub_combinations.iter_mut() {
-            sub_combination.insert(0, list[i].clone());
-        }
-        c.append(&mut sub_combinations);
-    }
-    c
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -91,14 +71,6 @@ mod tests {
         assert_eq!(
             unique_permutations(&vec![1, 2, 3]),
             vec![vec![1, 2], vec![1, 3], vec![2, 3]]
-        );
-    }
-
-    #[test]
-    fn test_combinations() {
-        assert_eq!(
-            combinations(&vec![1, 2, 3, 4], 3),
-            vec![vec![1, 2, 3], vec![1, 2, 4], vec![1, 3, 4], vec![2, 3, 4],]
         );
     }
 }

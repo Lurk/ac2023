@@ -225,5 +225,45 @@ Again. Tests are green, but result is wrong :(
 
 I gave up and looked at reddit. This was the test case that I was missing `??#???##?? 1,3`
 
+I did not solve part two with a brute force. Despite spending 46 nanosecond on checking each combination, some of the
+rows had so many of them that solving them require a few hours. 
+
+With a Christmas party and hangover after it I am lagging five days behind :(
+
+Ok. Instead of generating all possible combinations I can use a tree. `??#???##?? 1,3` can be 
+
+
+```
+                            _/\_
+                          0|0  0|0
+                    -------.    #------             1) '.', 2) '#' - 1,2 are possible
+                  1|0     1|0  1|1    1|1 
+                   .       #    .      #            1) '..', 2) '.#', 3) '#.', 4) '##' - 1,2,3 are possible  
+                  2|0     2|1  2|1     
+               ----#--     #  --#------             1) '..#', 2) '.##', 3) '#.#'  - 1,3 are possible 
+              3|1    3|1     3|1      3|1
+          -----.----  #       .   -----#---         1) '..#.', 2) '..##', 3) '#.#.', 4) '#.##' - 1,4 are not possible
+         4|1      4|1            4|1     4|1
+        --.----    #-------       .     --#----     1) '..#..', 2) '..#.#', 3) '#.##.', 4) '#.###' - 1,2,4 are possible
+       5|1   5|1  5|1     5|1          5|1    5|1
+        .     #    .       #            .      #    1) '..#...', 2) '..#..#', 3) '..#.#.', 4) '..#.##', 5) '#.###.', 
+       6|1   6|1          6|1          6|1              6) '#.####' - 1,2,4 are possible
+        #     #            #            #           1) '..#...#', 2) '..#..##', 3) '..#.###', 4) '#.###.#' 
+       7|1   7|1          7|1                           - 1,2,3 are possible
+   -----#     #-------     #                        1) '..#...##', 2) '..#..###', 3) '..#..####' - 1,2 are possible
+  8|1  8|1   8|1    8|1   
+   . ---#-    .      #                              1) '..#...##.', 2) '..#...###', 3) '..#..###.', 4) '..#..####'
+    9|1 9|1  9|1                                        - 2,3 - are possible
+     .   #    .                                     1) '..#...###.', 2) '..#...####', 3) '..#..###..' 
+     ^        ^                                         - 1,3 are possible
+```
+Where (spring index) | (group index)
+
+Now, while I can eyeball what is possible and what is not, somehow I can not think of way to solve it elegantly :(
+
+Yeah, so, few hours and bunch of ifs tests are passing. First part is producing the same result as before. Everything 
+is super fast.  But, result is `too low`. 
+
+
 
 
