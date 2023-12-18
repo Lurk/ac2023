@@ -28,6 +28,10 @@ impl<T: Display + PartialEq + Clone> Map<T> {
         })
     }
 
+    pub fn get_columns_count(&self) -> usize {
+        self.tiles.len() / self.line_length
+    }
+
     pub fn replace_columns(&mut self, columns: Vec<Vec<T>>) {
         let mut tiles = Vec::new();
         for i in 0..columns[0].len() {
@@ -49,6 +53,10 @@ impl<T: Display + PartialEq + Clone> Map<T> {
         let b_x = b % self.line_length;
         let b_y = b / self.line_length;
         ((a_x as isize - b_x as isize).abs() + (a_y as isize - b_y as isize).abs()) as usize
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.tiles.is_empty()
     }
 }
 

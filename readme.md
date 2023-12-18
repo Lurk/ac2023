@@ -270,3 +270,6 @@ All test cases that I found on reddit also green.
 
 I am giving up. Can't come up with a test case that would fail. Will go and do other tasks.
 
+## Day 13
+
+Part one was fairly easy. Which had a healing effect for my ego after previous day failure.
