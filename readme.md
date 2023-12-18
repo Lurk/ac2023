@@ -250,9 +250,9 @@ Ok. Instead of generating all possible combinations I can use a tree. `??#???##?
        6|1   6|1          6|1          6|1              6) '#.####' - 1,2,4 are possible
         #     #            #            #           1) '..#...#', 2) '..#..##', 3) '..#.###', 4) '#.###.#' 
        7|1   7|1          7|1                           - 1,2,3 are possible
-   -----#     #-------     #                        1) '..#...##', 2) '..#..###', 3) '..#..####' - 1,2 are possible
-  8|1  8|1   8|1    8|1   
-   . ---#-    .      #                              1) '..#...##.', 2) '..#...###', 3) '..#..###.', 4) '..#..####'
+  ------#     #-------     #                        1) '..#...##', 2) '..#..###', 3) '..#..####' - 1,2 are possible
+ 8|1   8|1   8|1    8|1   
+  .  ---#-    .      #                              1) '..#...##.', 2) '..#...###', 3) '..#..###.', 4) '..#..####'
     9|1 9|1  9|1                                        - 2,3 - are possible
      .   #    .                                     1) '..#...###.', 2) '..#...####', 3) '..#..###..' 
      ^        ^                                         - 1,3 are possible
@@ -261,9 +261,12 @@ Where (spring index) | (group index)
 
 Now, while I can eyeball what is possible and what is not, somehow I can not think of way to solve it elegantly :(
 
-Yeah, so, few hours and bunch of ifs tests are passing. First part is producing the same result as before. Everything 
-is super fast.  But, result is `too low`. 
+Yeah, so, few hours and bunch of ifs later, tests are passing. First part is producing the same result as before. 
+Everything is super fast. But, result is `too low`. 
 
+Added more tests. They are also green. Result is still wrong. Maybe it is time to give up and go to reddit. 
 
+All test cases that I found on reddit also green. 
 
+I am giving up. Can't come up with a test case that would fail. Will go and do other tasks.
 
