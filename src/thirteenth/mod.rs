@@ -11,7 +11,7 @@ enum Type {
 }
 
 fn find_reflection(map: &Map<char>, skip: &Option<Type>) -> Type {
-    let row = map.get_rows().nth(0).unwrap();
+    let row = map.get_rows().next().unwrap();
     for i in 1..map.line_length {
         if skip == &Some(Type::Horizontal(i)) {
             continue;
@@ -21,7 +21,7 @@ fn find_reflection(map: &Map<char>, skip: &Option<Type>) -> Type {
             return Type::Horizontal(i);
         }
     }
-    let column = map.get_columns().nth(0).unwrap();
+    let column = map.get_columns().next().unwrap();
     for i in 1..map.get_columns_count() {
         if skip == &Some(Type::Vertical(i)) {
             continue;
@@ -37,17 +37,10 @@ fn find_reflection(map: &Map<char>, skip: &Option<Type>) -> Type {
 
 fn is_reflection_at_index(slice: &[char], i: usize) -> bool {
     let (head, tail) = slice.split_at(i);
-    if head.len() > tail.len()
-        && head.ends_with(tail.iter().cloned().rev().collect::<Vec<_>>().as_slice())
-    {
-        return true;
-    } else if tail.len() > head.len()
-        && tail.starts_with(head.iter().cloned().rev().collect::<Vec<_>>().as_slice())
-    {
-        return true;
-    }
-
-    return false;
+    return (head.len() > tail.len()
+        && head.ends_with(tail.iter().cloned().rev().collect::<Vec<_>>().as_slice()))
+        || (tail.len() > head.len()
+            && tail.starts_with(head.iter().cloned().rev().collect::<Vec<_>>().as_slice()));
 }
 
 fn get_maps(lines: impl Iterator<Item = String>) -> Vec<Map<char>> {
