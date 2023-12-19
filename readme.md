@@ -193,4 +193,8 @@ I am giving up. Can't come up with a test case that would fail. Will go and do o
 
 Part one was fairly easy. Which had a healing effect for my ego after previous day failure. 
 
-The main struggle in the second part was to get what I actually need to do. But I managed. 
+The main struggle in the second part was to get what I actually need to do. But I managed.
+
+## Day 14
+
+Part one is solved by splitting and sorting. 

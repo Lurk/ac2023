@@ -6,6 +6,7 @@ mod eighth;
 mod eleventh;
 mod fifth;
 mod first;
+mod fourteenth;
 mod fourth;
 mod ninth;
 mod second;
@@ -45,6 +46,7 @@ enum Days {
     Eleventh(Runner),
     Twelfth(Runner),
     Thirteenth(Runner),
+    Fourteenth(Runner),
 }
 
 #[derive(Parser, Debug)]
@@ -71,5 +73,6 @@ fn main() {
         Days::Eleventh(runner) => eleventh::run(&runner),
         Days::Twelfth(runner) => twelfth::run(&runner),
         Days::Thirteenth(runner) => thirteenth::run(&runner),
+        Days::Fourteenth(runner) => fourteenth::run(&runner),
     }
 }
