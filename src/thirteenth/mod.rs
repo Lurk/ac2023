@@ -10,9 +10,12 @@ enum Type {
     None,
 }
 
-fn find_reflection(map: &Map<char>) -> Type {
+fn find_reflection(map: &Map<char>, skip: &Option<Type>) -> Type {
     let row = map.get_rows().nth(0).unwrap();
     for i in 1..map.line_length {
+        if skip == &Some(Type::Horizontal(i)) {
+            continue;
+        }
         if is_reflection_at_index(&row, i) && map.get_rows().all(|r| is_reflection_at_index(&r, i))
         {
             return Type::Horizontal(i);
@@ -20,6 +23,9 @@ fn find_reflection(map: &Map<char>) -> Type {
     }
     let column = map.get_columns().nth(0).unwrap();
     for i in 1..map.get_columns_count() {
+        if skip == &Some(Type::Vertical(i)) {
+            continue;
+        }
         if is_reflection_at_index(&column, i)
             && map.get_columns().all(|c| is_reflection_at_index(&c, i))
         {
@@ -71,7 +77,7 @@ fn one(lines: impl Iterator<Item = String>) -> usize {
     get_maps(lines)
         .into_iter()
         .filter(|m| !m.is_empty())
-        .map(|m| find_reflection(&m))
+        .map(|m| find_reflection(&m, &None))
         .map(|t| match t {
             Type::Horizontal(i) => i,
             Type::Vertical(i) => i * 100,
@@ -80,8 +86,35 @@ fn one(lines: impl Iterator<Item = String>) -> usize {
         .sum()
 }
 
+fn fix_the_smudge(map: &Map<char>, skip: Option<Type>) -> Type {
+    for j in 0..map.tiles.len() {
+        let mut updated_map = map.clone();
+        if updated_map.tiles[j] == '#' {
+            updated_map.tiles[j] = '.';
+        } else {
+            updated_map.tiles[j] = '#';
+        }
+
+        match find_reflection(&updated_map, &skip) {
+            Type::Horizontal(i) => return Type::Horizontal(i),
+            Type::Vertical(i) => return Type::Vertical(i),
+            Type::None => continue,
+        }
+    }
+    Type::None
+}
+
 fn two(lines: impl Iterator<Item = String>) -> usize {
-    0
+    get_maps(lines)
+        .into_iter()
+        .filter(|m| !m.is_empty())
+        .map(|m| fix_the_smudge(&m, Some(find_reflection(&m, &None))))
+        .map(|t| match t {
+            Type::Horizontal(i) => i,
+            Type::Vertical(i) => i * 100,
+            Type::None => 0,
+        })
+        .sum()
 }
 
 pub fn run(runner: &Runner) {
@@ -100,9 +133,7 @@ mod tests {
 
     use super::*;
 
-    #[test]
-    fn test_parse() {
-        let input = r#"#.##..##.
+    const INPUT: &str = r#"#.##..##.
 ..#.##.#.
 ##......#
 ##......#
@@ -118,44 +149,24 @@ mod tests {
 ..##..###
 #....#..#
 
-"#
-        .lines()
-        .map(|l| l.to_string());
+"#;
 
-        let maps = get_maps(input);
+    #[test]
+    fn test_parse() {
+        let maps = get_maps(INPUT.lines().map(|l| l.to_string()));
         assert_eq!(maps.len(), 3);
 
-        assert_eq!(find_reflection(&maps[0]), Type::Horizontal(5));
-        assert_eq!(find_reflection(&maps[1]), Type::Vertical(4));
+        assert_eq!(find_reflection(&maps[0], &None), Type::Horizontal(5));
+        assert_eq!(find_reflection(&maps[1], &None), Type::Vertical(4));
     }
 
     #[test]
     fn test_one() {
-        let input = r#"#.##..##.
-..#.##.#.
-##......#
-##......#
-..#.##.#.
-..##..##.
-#.#.##.#.
-
-#...##..#
-#....#..#
-..##..###
-#####.##.
-#####.##.
-..##..###
-#....#..#
-
-"#
-        .lines()
-        .map(|l| l.to_string());
-        assert_eq!(one(input), 405);
+        assert_eq!(one(INPUT.lines().map(|l| l.to_string())), 405);
     }
 
     #[test]
     fn test_two() {
-        let input = r#""#.lines().map(|l| l.to_string());
-        assert_eq!(two(input), 0);
+        assert_eq!(two(INPUT.lines().map(|l| l.to_string())), 400);
     }
 }

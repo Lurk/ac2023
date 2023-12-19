@@ -1,5 +1,6 @@
 use std::fmt::Display;
 
+#[derive(Debug, PartialEq, Clone)]
 pub struct Map<T>
 where
     T: Display + PartialEq + Clone,
