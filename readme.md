@@ -197,4 +197,14 @@ The main struggle in the second part was to get what I actually need to do. But 
 
 ## Day 14
 
-Part one is solved by splitting and sorting. 
+Part one is solved by splitting and sorting.
+
+I knew that brute force will not work. Tried anyway, and even small test case did not finished in reasonable time. 
+Debug output shows that after some amount of iterations results are cycling. Current plan is:
+
+* cycle detection
+* cycle length/start extraction 
+
+Easy.
+
+TBH I did not expected it to be easy. But it was. 

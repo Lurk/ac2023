@@ -1,9 +1,9 @@
 use crate::{
-    utils::{get_lines, map::Map},
+    utils::{cycle::CycleDetector, get_lines, map::Map},
     Part, Runner,
 };
 
-fn one(mut map: Map<char>) -> usize {
+fn north(map: &mut Map<char>) {
     let columns: Vec<Vec<char>> = map
         .get_columns()
         .map(|c| {
@@ -20,6 +20,64 @@ fn one(mut map: Map<char>) -> usize {
         .collect();
 
     map.replace_columns(columns);
+}
+
+fn south(map: &mut Map<char>) {
+    let columns: Vec<Vec<char>> = map
+        .get_columns()
+        .map(|c| {
+            c.split(|s| *s == '#')
+                .map(|s| {
+                    let mut v = s.to_vec();
+                    v.sort();
+                    v
+                })
+                .collect::<Vec<Vec<char>>>()
+                .join(&'#')
+        })
+        .collect();
+
+    map.replace_columns(columns);
+}
+
+fn west(map: &mut Map<char>) {
+    let rows: Vec<Vec<char>> = map
+        .get_rows()
+        .map(|r| {
+            r.split(|s| *s == '#')
+                .map(|s| {
+                    let mut v = s.to_vec();
+                    v.sort();
+                    v.reverse();
+                    v
+                })
+                .collect::<Vec<Vec<char>>>()
+                .join(&'#')
+        })
+        .collect();
+
+    map.replace_rows(rows);
+}
+
+fn east(map: &mut Map<char>) {
+    let rows: Vec<Vec<char>> = map
+        .get_rows()
+        .map(|r| {
+            r.split(|s| *s == '#')
+                .map(|s| {
+                    let mut v = s.to_vec();
+                    v.sort();
+                    v
+                })
+                .collect::<Vec<Vec<char>>>()
+                .join(&'#')
+        })
+        .collect();
+
+    map.replace_rows(rows);
+}
+
+fn get_weigth(map: &Map<char>) -> usize {
     map.tiles
         .chunks(map.line_length)
         .rev()
@@ -32,6 +90,12 @@ fn one(mut map: Map<char>) -> usize {
                 * (i + 1)
         })
         .sum()
+}
+
+fn one(mut map: Map<char>) -> usize {
+    north(&mut map);
+
+    get_weigth(&map)
 }
 
 fn lines_to_map(lines: impl Iterator<Item = String>) -> Map<char> {
@@ -51,6 +115,20 @@ fn lines_to_map(lines: impl Iterator<Item = String>) -> Map<char> {
 }
 
 fn two(mut map: Map<char>) -> usize {
+    let mut detector = CycleDetector::new();
+    let n = 1_000_000_000;
+    for _ in 0..n {
+        north(&mut map);
+        west(&mut map);
+        south(&mut map);
+        east(&mut map);
+        let weigth = get_weigth(&map);
+        if let Some(i) = detector.push(weigth) {
+            let slice = detector.get_slice(i, detector.len());
+            let position = (n - i) % slice.len() - 1;
+            return slice[position];
+        }
+    }
     0
 }
 
@@ -85,6 +163,6 @@ O.#..O.#.#
 
     #[test]
     fn test_two() {
-        assert_eq!(two(lines_to_map(INPUT.lines().map(|s| s.to_string()))), 0);
+        assert_eq!(two(lines_to_map(INPUT.lines().map(|s| s.to_string()))), 64);
     }
 }
