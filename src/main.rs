@@ -4,6 +4,7 @@ use clap::{command, Parser, Subcommand, ValueEnum};
 
 mod eighth;
 mod eleventh;
+mod fifteenth;
 mod fifth;
 mod first;
 mod fourteenth;
@@ -47,6 +48,7 @@ enum Days {
     Twelfth(Runner),
     Thirteenth(Runner),
     Fourteenth(Runner),
+    Fifteenth(Runner),
 }
 
 #[derive(Parser, Debug)]
@@ -74,5 +76,6 @@ fn main() {
         Days::Twelfth(runner) => twelfth::run(&runner),
         Days::Thirteenth(runner) => thirteenth::run(&runner),
         Days::Fourteenth(runner) => fourteenth::run(&runner),
+        Days::Fifteenth(runner) => fifteenth::run(&runner),
     }
 }

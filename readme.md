@@ -207,4 +207,8 @@ Debug output shows that after some amount of iterations results are cycling. Cur
 
 Easy.
 
-TBH I did not expected it to be easy. But it was. 
+TBH I did not expected it to be easy. But it was.
+
+## Day 15
+
+514025
