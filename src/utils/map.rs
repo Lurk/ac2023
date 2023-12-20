@@ -1,5 +1,7 @@
 use std::fmt::Display;
 
+use super::direction::Direction;
+
 #[derive(Debug, PartialEq, Clone)]
 pub struct Map<T>
 where
@@ -58,6 +60,10 @@ impl<T: Display + PartialEq + Clone> Map<T> {
 
     pub fn is_empty(&self) -> bool {
         self.tiles.is_empty()
+    }
+
+    pub fn move_from(&self, from: usize, direction: &Direction) -> Option<usize> {
+        direction.get_index(self.tiles.len(), self.line_length, from)
     }
 }
 

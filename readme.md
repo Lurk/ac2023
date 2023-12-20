@@ -213,4 +213,12 @@ TBH I did not expected it to be easy. But it was.
 
 Part one is surprisingly easy.
 
-Everyday I fear that it will be day 12 all over again. But not this day.  
+Everyday I fear that it will be day 12 all over again. But not this day.
+
+## Day 16
+
+Since I already have stuff like `Map` and `Direction` from previous days, moving the light beam was easy. Only 
+complication was the fact that there is a lot of movement and you need to remember from which tile to which direction 
+you already moved.  
+
+Also today I managed to do three parts before going to sleep. Kind of proud of myself :)
