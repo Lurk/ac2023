@@ -211,4 +211,6 @@ TBH I did not expected it to be easy. But it was.
 
 ## Day 15
 
-514025
+Part one is surprisingly easy.
+
+Everyday I fear that it will be day 12 all over again. But not this day.  
