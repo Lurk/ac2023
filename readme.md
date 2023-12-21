@@ -222,3 +222,6 @@ complication was the fact that there is a lot of movement and you need to rememb
 you already moved.  
 
 Also today I managed to do three parts before going to sleep. Kind of proud of myself :)
+
+Part two was even easier. I thought that I will need to use some black magic to speed things up, but everything was 
+fast enough already.
