@@ -52,6 +52,7 @@ enum Days {
     Fourteenth(Runner),
     Fifteenth(Runner),
     Sixteenth(Runner),
+    Seventeenth(Runner),
 }
 
 #[derive(Parser, Debug)]
@@ -81,5 +82,6 @@ fn main() {
         Days::Fourteenth(runner) => fourteenth::run(&runner),
         Days::Fifteenth(runner) => fifteenth::run(&runner),
         Days::Sixteenth(runner) => sixteenth::run(&runner),
+        Days::Seventeenth(runner) => seventeenth::run(&runner),
     }
 }

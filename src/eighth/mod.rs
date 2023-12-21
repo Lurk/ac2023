@@ -89,11 +89,11 @@ impl Map {
     }
 }
 
-pub fn one(map: Map) -> usize {
+fn one(map: Map) -> usize {
     map.steps_from_to(Arc::from("AAA"), Arc::from("ZZZ"))
 }
 
-pub fn two(map: Map) -> usize {
+fn two(map: Map) -> usize {
     map.steps_from_to_ends_with('A', 'Z')
 }
 
