@@ -21,7 +21,7 @@ pub struct Node {
     right: Arc<str>,
 }
 
-pub struct Map {
+struct Map {
     steps: Vec<Direction>,
     graph: HashMap<Arc<str>, Node>,
 }

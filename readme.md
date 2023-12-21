@@ -225,3 +225,5 @@ Also today I managed to do three parts before going to sleep. Kind of proud of m
 
 Part two was even easier. I thought that I will need to use some black magic to speed things up, but everything was 
 fast enough already.
+
+## Day 17
