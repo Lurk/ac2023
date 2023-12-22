@@ -227,3 +227,10 @@ Part two was even easier. I thought that I will need to use some black magic to 
 fast enough already.
 
 ## Day 17
+
+Off course I can google `Dijkstra's algorithm`, but it would be too easy. 
+
+I am so proud of myself. My homegrown algorithm does find shortest path on test data only in 10 minutes :) And dies
+with stack overflow on the real data. Maybe it is time to call Dijkstra for help. 
+
+

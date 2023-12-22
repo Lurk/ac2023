@@ -1,24 +1,131 @@
+use std::{sync::Mutex, usize};
+
+use rayon::prelude::*;
+
 use crate::{
-    utils::{get_non_empty_lines, map::Map},
+    utils::{direction::Direction, get_non_empty_lines, map::Map},
     Part, Runner,
 };
 
-fn one(map: &Map<char>) -> usize {
+const DIRECTIONS: [Direction; 4] = [
+    Direction::North,
+    Direction::South,
+    Direction::East,
+    Direction::West,
+];
+
+#[derive(Clone)]
+struct Path {
+    pub need_to_turn: bool,
+    last_direction: Option<Direction>,
+    direction_repeated_times: usize,
+    pub indexes: Vec<usize>,
+}
+
+impl Path {
+    fn new() -> Self {
+        Self {
+            need_to_turn: false,
+            last_direction: None,
+            direction_repeated_times: 0,
+            indexes: vec![],
+        }
+    }
+
+    fn push_direction(&mut self, direction: Direction) {
+        if self.last_direction.as_ref() == Some(&direction) {
+            self.direction_repeated_times += 1;
+        } else {
+            self.direction_repeated_times = 1;
+        }
+        self.need_to_turn = self.direction_repeated_times >= 3;
+        self.last_direction = Some(direction);
+    }
+
+    fn last_direction(&self) -> Option<&Direction> {
+        self.last_direction.as_ref()
+    }
+
+    fn contains(&self, index: usize) -> bool {
+        self.indexes.contains(&index)
+    }
+
+    fn push_index(&mut self, index: usize) {
+        self.indexes.push(index);
+    }
+}
+
+fn debug(map: &Map<usize>, path: &Path) {
+    let mut map = map.clone();
+    for i in path.indexes.iter() {
+        map.tiles[*i] = 0;
+    }
+    println!("{}", map);
+}
+
+fn next(map: &Map<usize>, path: Path, current_min: &Mutex<usize>, length: usize) -> usize {
+    let current_index: usize = *path.indexes.last().unwrap_or(&0);
+    let distance = path.indexes.iter().map(|i| map.tiles[*i]).sum();
+    let min = { *current_min.lock().unwrap() };
+
+    if current_index == map.tiles.len() - 1 {
+        println!("reached the end");
+        if distance < min {
+            println!("new min: {}", distance);
+            debug(map, &path);
+            current_min.lock().unwrap().clone_from(&distance);
+        }
+        return distance;
+    }
+
+    let mut possible_directions = DIRECTIONS.to_vec();
+    if let Some(direction) = path.last_direction() {
+        possible_directions.retain(|d| d.opposite() != *direction);
+        if path.need_to_turn {
+            possible_directions.retain(|d| d != direction);
+        }
+    }
+
+    possible_directions
+        .par_iter()
+        .filter_map(|d| map.move_from(current_index, d).map(|i| (d, i)))
+        .filter(|(_, i)| !path.contains(*i))
+        .map(|(d, i)| {
+            let l = length + map.tiles[i];
+            if l < min {
+                let mut path = path.clone();
+                path.push_direction(d.clone());
+                path.push_index(i);
+
+                return next(map, path, current_min, l);
+            }
+            usize::MAX
+        })
+        .min()
+        .unwrap_or(usize::MAX)
+}
+
+fn one(map: &Map<usize>) -> usize {
+    let min = Mutex::new(usize::MAX);
+    next(map, Path::new(), &min, 0)
+}
+
+fn two(map: &Map<usize>) -> usize {
     0
 }
 
-fn two(map: &Map<char>) -> usize {
-    0
-}
-
-fn lines_to_map(lines: impl Iterator<Item = String>) -> Map<char> {
+fn lines_to_map(lines: impl Iterator<Item = String>) -> Map<usize> {
     lines.fold(
         Map {
             tiles: vec![],
             line_length: 0,
         },
         |mut map, line| {
-            let row = line.trim().chars().collect::<Vec<char>>();
+            let row = line
+                .trim()
+                .chars()
+                .map(|c| c.to_string().parse::<usize>().unwrap())
+                .collect::<Vec<usize>>();
             map.line_length = row.len();
             map.tiles.extend(row);
             map
@@ -40,7 +147,8 @@ pub fn run(runner: &Runner) {
 mod tests {
     use super::*;
 
-    const TEST_INPUT: &str = r#"2413432311323
+    const TEST_INPUT: &str = r#"
+2413432311323
 3215453535623
 3255245654254
 3446585845452
@@ -56,7 +164,6 @@ mod tests {
     #[test]
     fn test_one() {
         let map = lines_to_map(TEST_INPUT.lines().map(String::from));
-
         assert_eq!(one(&map), 102);
     }
 }

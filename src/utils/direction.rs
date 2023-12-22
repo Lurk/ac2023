@@ -10,6 +10,30 @@ pub enum Direction {
     NorthWest,
 }
 
+impl From<char> for Direction {
+    fn from(c: char) -> Self {
+        match c {
+            'n' => Direction::North,
+            'e' => Direction::East,
+            's' => Direction::South,
+            'w' => Direction::West,
+            _ => panic!("Invalid direction"),
+        }
+    }
+}
+
+impl Into<char> for Direction {
+    fn into(self) -> char {
+        match self {
+            Direction::North => 'n',
+            Direction::East => 'e',
+            Direction::South => 's',
+            Direction::West => 'w',
+            _ => panic!("Invalid direction"),
+        }
+    }
+}
+
 impl Direction {
     pub fn get_index(&self, total_len: usize, line_length: usize, index: usize) -> Option<usize> {
         match self {
@@ -69,6 +93,19 @@ impl Direction {
                     None
                 }
             }
+        }
+    }
+
+    pub fn opposite(&self) -> Self {
+        match self {
+            Direction::North => Direction::South,
+            Direction::NorthEast => Direction::SouthWest,
+            Direction::East => Direction::West,
+            Direction::SouthEast => Direction::NorthWest,
+            Direction::South => Direction::North,
+            Direction::SouthWest => Direction::NorthEast,
+            Direction::West => Direction::East,
+            Direction::NorthWest => Direction::SouthEast,
         }
     }
 }
