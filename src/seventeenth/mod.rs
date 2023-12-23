@@ -1,4 +1,4 @@
-use std::{sync::Mutex, usize};
+use std::{collections::HashMap, sync::Mutex, usize};
 
 use rayon::prelude::*;
 
@@ -17,33 +17,34 @@ const DIRECTIONS: [Direction; 4] = [
 #[derive(Clone)]
 struct Path {
     pub need_to_turn: bool,
-    last_direction: Option<Direction>,
-    direction_repeated_times: usize,
     pub indexes: Vec<usize>,
+    direction_repeated_times: usize,
+    directions: [Option<Direction>; 3],
 }
 
 impl Path {
     fn new() -> Self {
         Self {
             need_to_turn: false,
-            last_direction: None,
             direction_repeated_times: 0,
             indexes: vec![],
+            directions: [None, None, None],
         }
     }
 
     fn push_direction(&mut self, direction: Direction) {
-        if self.last_direction.as_ref() == Some(&direction) {
+        if self.directions[2].as_ref() == Some(&direction) {
             self.direction_repeated_times += 1;
         } else {
             self.direction_repeated_times = 1;
         }
         self.need_to_turn = self.direction_repeated_times >= 3;
-        self.last_direction = Some(direction);
+        self.directions.rotate_left(1);
+        self.directions[2] = Some(direction);
     }
 
     fn last_direction(&self) -> Option<&Direction> {
-        self.last_direction.as_ref()
+        self.directions[2].as_ref()
     }
 
     fn contains(&self, index: usize) -> bool {
@@ -63,19 +64,14 @@ fn debug(map: &Map<usize>, path: &Path) {
     println!("{}", map);
 }
 
-fn next(map: &Map<usize>, path: Path, current_min: &Mutex<usize>, length: usize) -> usize {
-    let current_index: usize = *path.indexes.last().unwrap_or(&0);
-    let distance = path.indexes.iter().map(|i| map.tiles[*i]).sum();
-    let min = { *current_min.lock().unwrap() };
-
+fn next(
+    map: &Map<usize>,
+    path: Path,
+    cache: &mut HashMap<([Option<Direction>; 3], usize), Option<usize>>,
+    current_index: usize,
+) -> Option<usize> {
     if current_index == map.tiles.len() - 1 {
-        println!("reached the end");
-        if distance < min {
-            println!("new min: {}", distance);
-            debug(map, &path);
-            current_min.lock().unwrap().clone_from(&distance);
-        }
-        return distance;
+        return Some(map.tiles[current_index]);
     }
 
     let mut possible_directions = DIRECTIONS.to_vec();
@@ -86,28 +82,39 @@ fn next(map: &Map<usize>, path: Path, current_min: &Mutex<usize>, length: usize)
         }
     }
 
-    possible_directions
-        .par_iter()
+    if cache.contains_key(&(path.directions.clone(), current_index)) {
+        return cache
+            .get(&(path.directions, current_index))
+            .unwrap()
+            .clone();
+    }
+
+    let val = possible_directions
+        .iter()
         .filter_map(|d| map.move_from(current_index, d).map(|i| (d, i)))
         .filter(|(_, i)| !path.contains(*i))
-        .map(|(d, i)| {
-            let l = length + map.tiles[i];
-            if l < min {
-                let mut path = path.clone();
-                path.push_direction(d.clone());
-                path.push_index(i);
+        .filter_map(|(d, i)| {
+            let mut path = path.clone();
+            path.push_direction(d.clone());
+            path.push_index(i);
 
-                return next(map, path, current_min, l);
-            }
-            usize::MAX
+            next(map, path, cache, i).map(|v| {
+                v + if current_index == 0 {
+                    0
+                } else {
+                    map.tiles[current_index]
+                }
+            })
         })
-        .min()
-        .unwrap_or(usize::MAX)
+        .min();
+
+    cache.insert((path.directions, current_index), val);
+    val
 }
 
 fn one(map: &Map<usize>) -> usize {
-    let min = Mutex::new(usize::MAX);
-    next(map, Path::new(), &min, 0)
+    let mut cache: HashMap<([Option<Direction>; 3], usize), Option<usize>> = HashMap::new();
+    next(map, Path::new(), &mut cache, 0).unwrap()
 }
 
 fn two(map: &Map<usize>) -> usize {

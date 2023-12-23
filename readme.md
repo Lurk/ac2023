@@ -231,6 +231,15 @@ fast enough already.
 Off course I can google `Dijkstra's algorithm`, but it would be too easy. 
 
 I am so proud of myself. My homegrown algorithm does find shortest path on test data only in 10 minutes :) And dies
-with stack overflow on the real data. Maybe it is time to call Dijkstra for help. 
+with stack overflow on the real data. Maybe it is time to call Dijkstra for help.
+
+Spent some time reading [Dijkstra's algorithm](https://en.wikipedia.org/wiki/Dijkstra's_algorithm) and can't figure out 
+how to apply the no more that 3 steps in one direction rule to it. But reading it gave me idea that I want to try. 
+
+For every point point the map we have a few directions we can go. The amount of those directions depends on 3 previous 
+ones. Which means that for every pair of `([Option<Direction>;3], index)` we can remember min distance. 
+
+That work very well. Test run finishes in 0.04s, which is much better than 10 minutes. Run on a real data still fails 
+with stack overflow. 
 
 
