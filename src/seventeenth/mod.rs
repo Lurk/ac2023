@@ -58,24 +58,13 @@ fn next(
     map: &Map<usize>,
     path: Path,
     cache: &mut HashMap<([Option<Direction>; 3], usize), Option<usize>>,
-    current_best: &mut usize,
     current_index: usize,
 ) -> Option<usize> {
     if let Some(res) = cache.get(&(path.directions.clone(), current_index)) {
         return *res;
     }
 
-    let new_current_best = path.indexes.iter().map(|i| map.tiles[*i]).sum::<usize>();
-
-    if new_current_best > *current_best {
-        return None;
-    }
-
     if current_index == map.tiles.len() - 1 {
-        if new_current_best < *current_best {
-            *current_best = new_current_best;
-        }
-
         return Some(map.tiles[current_index]);
     }
 
@@ -93,7 +82,7 @@ fn next(
                 let mut path = path.clone();
                 path.push_direction(d.clone());
                 path.push_index(i);
-                if let Some(v) = next(map, path, cache, current_best, i) {
+                if let Some(v) = next(map, path, cache, i) {
                     let v = v + if current_index == 0 {
                         0
                     } else {
@@ -113,8 +102,7 @@ fn next(
 
 fn one(map: &Map<usize>) -> usize {
     let mut cache: HashMap<([Option<Direction>; 3], usize), Option<usize>> = HashMap::new();
-    let mut current_best = usize::MAX;
-    next(map, Path::new(), &mut cache, &mut current_best, 0).unwrap()
+    next(map, Path::new(), &mut cache, 0).unwrap()
 }
 
 fn two(_map: &Map<usize>) -> usize {

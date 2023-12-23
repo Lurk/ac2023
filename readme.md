@@ -251,7 +251,17 @@ there is no sense to continue. Algorithm gives a correct result on a test data, 
 `1044`,  but `That's not the right answer; your answer is too high. Curiously, it's the right answer for someone else; 
 you might be logged in to the wrong account or just unlucky`. Yes. That's who I am. Unlucky :)
 
+In the current implementation I am getting the `current_best` from path only when algorithm on a last tile. Because of 
+caching, that happens only a few initial times. At the same time cache contains the missing part of calculation. I can 
+improve that part while thinking how to fix actual error.
 
+While updating that thing I have one more idea regarding `current_best` instead of `usize::MAX` I can use worst case 
+which is longest path times highest tile value. Where longest past is length of `(side 1 + side 2) * 9`. 
+
+That made test fail. Which make me thinking that `current_best` and caching are preventing from visiting some of the
+tiles. Without cache everything is too slow, so I am back to the same question - should I continue look for a way to 
+optimize amount of branches, or should I look for a completely new approach. Looks like optimizing branches are not as 
+easy as I hoped it would be. Time to get of the keyboard and think of a new approach. 
 
 
 
