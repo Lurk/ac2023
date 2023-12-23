@@ -1,6 +1,4 @@
-use std::{collections::HashMap, sync::Mutex, usize};
-
-use rayon::prelude::*;
+use std::collections::HashMap;
 
 use crate::{
     utils::{direction::Direction, get_non_empty_lines, map::Map},
@@ -56,57 +54,47 @@ impl Path {
     }
 }
 
-fn debug(map: &Map<usize>, path: &Path) {
-    let mut map = map.clone();
-    for i in path.indexes.iter() {
-        map.tiles[*i] = 0;
-    }
-    println!("{}", map);
-}
-
 fn next(
     map: &Map<usize>,
     path: Path,
     cache: &mut HashMap<([Option<Direction>; 3], usize), Option<usize>>,
     current_index: usize,
 ) -> Option<usize> {
+    if let Some(res) = cache.get(&(path.directions.clone(), current_index)) {
+        return *res;
+    }
+
     if current_index == map.tiles.len() - 1 {
         return Some(map.tiles[current_index]);
     }
 
-    let mut possible_directions = DIRECTIONS.to_vec();
-    if let Some(direction) = path.last_direction() {
-        possible_directions.retain(|d| d.opposite() != *direction);
-        if path.need_to_turn {
-            possible_directions.retain(|d| d != direction);
+    let mut val = None;
+
+    for d in &DIRECTIONS {
+        if Some(d.opposite()) == path.last_direction().cloned() {
+            continue;
+        }
+        if path.need_to_turn && Some(d) == path.last_direction() {
+            continue;
+        }
+        if let Some(i) = map.move_from(current_index, d) {
+            if !path.contains(i) {
+                let mut path = path.clone();
+                path.push_direction(d.clone());
+                path.push_index(i);
+                if let Some(v) = next(map, path, cache, i) {
+                    let v = v + if current_index == 0 {
+                        0
+                    } else {
+                        map.tiles[current_index]
+                    };
+                    if val.is_none() || v < val.unwrap() {
+                        val = Some(v);
+                    }
+                }
+            }
         }
     }
-
-    if cache.contains_key(&(path.directions.clone(), current_index)) {
-        return cache
-            .get(&(path.directions, current_index))
-            .unwrap()
-            .clone();
-    }
-
-    let val = possible_directions
-        .iter()
-        .filter_map(|d| map.move_from(current_index, d).map(|i| (d, i)))
-        .filter(|(_, i)| !path.contains(*i))
-        .filter_map(|(d, i)| {
-            let mut path = path.clone();
-            path.push_direction(d.clone());
-            path.push_index(i);
-
-            next(map, path, cache, i).map(|v| {
-                v + if current_index == 0 {
-                    0
-                } else {
-                    map.tiles[current_index]
-                }
-            })
-        })
-        .min();
 
     cache.insert((path.directions, current_index), val);
     val
@@ -117,7 +105,7 @@ fn one(map: &Map<usize>) -> usize {
     next(map, Path::new(), &mut cache, 0).unwrap()
 }
 
-fn two(map: &Map<usize>) -> usize {
+fn two(_map: &Map<usize>) -> usize {
     0
 }
 

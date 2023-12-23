@@ -242,4 +242,8 @@ ones. Which means that for every pair of `([Option<Direction>;3], index)` we can
 That work very well. Test run finishes in 0.04s, which is much better than 10 minutes. Run on a real data still fails 
 with stack overflow. 
 
+`LLDB` shows that Iterators are occupying a lot of space on stack. Replaced them with for loop. Still not good enough. 
+The question is should I continue look for a way to optimize amount of branches, or should I look for a completely new 
+approach. 
+
 
