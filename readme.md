@@ -244,6 +244,14 @@ with stack overflow.
 
 `LLDB` shows that Iterators are occupying a lot of space on stack. Replaced them with for loop. Still not good enough. 
 The question is should I continue look for a way to optimize amount of branches, or should I look for a completely new 
-approach. 
+approach.
+
+Ok. The way to reduce branches is to pass a reference to current best, and if current path produces greater value then 
+there is no sense to continue. Algorithm gives a correct result on a test data, finishes on a real data with result 
+`1044`,  but `That's not the right answer; your answer is too high. Curiously, it's the right answer for someone else; 
+you might be logged in to the wrong account or just unlucky`. Yes. That's who I am. Unlucky :)
+
+
+
 
 
