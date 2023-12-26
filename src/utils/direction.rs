@@ -8,6 +8,7 @@ pub enum Direction {
     SouthWest,
     West,
     NorthWest,
+    Center,
 }
 
 impl From<char> for Direction {
@@ -93,6 +94,7 @@ impl Direction {
                     None
                 }
             }
+            Direction::Center => None,
         }
     }
 
@@ -106,6 +108,7 @@ impl Direction {
             Direction::SouthWest => Direction::NorthEast,
             Direction::West => Direction::East,
             Direction::NorthWest => Direction::SouthEast,
+            Direction::Center => Direction::Center,
         }
     }
 }

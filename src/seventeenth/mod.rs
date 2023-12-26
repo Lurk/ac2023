@@ -1,4 +1,8 @@
-use std::{collections::HashMap, usize};
+use std::{
+    collections::{HashMap, HashSet},
+    sync::Arc,
+    usize,
+};
 
 use crate::{
     utils::{direction::Direction, get_non_empty_lines, map::Map},
@@ -12,97 +16,138 @@ const DIRECTIONS: [Direction; 4] = [
     Direction::West,
 ];
 
-#[derive(Clone)]
-struct Path {
-    pub need_to_turn: bool,
-    pub indexes: Vec<usize>,
-    direction_repeated_times: usize,
-    directions: [Option<Direction>; 3],
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+struct Vertex {
+    index: usize,
+    direction: Direction,
+    amount_of_steps_in_same_direction: usize,
 }
 
-impl Path {
+#[derive(Debug)]
+struct Graph {
+    vertices: Vec<Arc<Vertex>>,
+    edges: HashMap<Arc<Vertex>, HashSet<(usize, Arc<Vertex>)>>,
+}
+
+impl Graph {
     fn new() -> Self {
         Self {
-            need_to_turn: false,
-            direction_repeated_times: 0,
-            indexes: vec![],
-            directions: [None, None, None],
+            vertices: vec![],
+            edges: HashMap::new(),
         }
     }
 
-    fn push_direction(&mut self, direction: Direction) {
-        if self.directions[2].as_ref() == Some(&direction) {
-            self.direction_repeated_times += 1;
-        } else {
-            self.direction_repeated_times = 1;
+    fn add_vertex(&mut self, vertex: Arc<Vertex>) -> bool {
+        if self.edges.contains_key(&vertex) {
+            return false;
         }
-        self.need_to_turn = self.direction_repeated_times >= 3;
-        self.directions.rotate_left(1);
-        self.directions[2] = Some(direction);
+        self.vertices.push(vertex.clone());
+        self.edges.insert(vertex, HashSet::new());
+        true
     }
 
-    fn last_direction(&self) -> Option<&Direction> {
-        self.directions[2].as_ref()
+    fn add_edge(&mut self, from: Arc<Vertex>, to: Arc<Vertex>, length: usize) {
+        self.edges.entry(from).or_default().insert((length, to));
     }
 
-    fn contains(&self, index: usize) -> bool {
-        self.indexes.contains(&index)
+    fn get_edges(&self, vertex: Arc<Vertex>) -> Option<&HashSet<(usize, Arc<Vertex>)>> {
+        self.edges.get(&vertex)
     }
 
-    fn push_index(&mut self, index: usize) {
-        self.indexes.push(index);
+    fn get_vertex(&self, index: usize) -> Option<&Arc<Vertex>> {
+        self.vertices.get(index)
     }
 }
 
-fn next(
-    map: &Map<usize>,
-    path: Path,
-    cache: &mut HashMap<([Option<Direction>; 3], usize), Option<usize>>,
-    current_index: usize,
-) -> Option<usize> {
-    if let Some(res) = cache.get(&(path.directions.clone(), current_index)) {
-        return *res;
-    }
+fn build_graph(map: &Map<usize>) -> Graph {
+    let mut graph = Graph::new();
+    let mut queue: Vec<Arc<Vertex>> = vec![];
+    let start = Arc::new(Vertex {
+        index: 0,
+        direction: Direction::Center,
+        amount_of_steps_in_same_direction: 1,
+    });
 
-    if current_index == map.tiles.len() - 1 {
-        return Some(map.tiles[current_index]);
-    }
+    graph.add_vertex(start.clone());
+    queue.push(start.clone());
 
-    let mut val = None;
+    while let Some(current) = queue.pop() {
+        for d in &DIRECTIONS {
+            if d == &current.direction.opposite() {
+                continue;
+            }
 
-    for d in &DIRECTIONS {
-        if Some(d.opposite()) == path.last_direction().cloned() {
-            continue;
-        }
-        if path.need_to_turn && Some(d) == path.last_direction() {
-            continue;
-        }
-        if let Some(i) = map.move_from(current_index, d) {
-            if !path.contains(i) {
-                let mut path = path.clone();
-                path.push_direction(d.clone());
-                path.push_index(i);
-                if let Some(v) = next(map, path, cache, i) {
-                    let v = v + if current_index == 0 {
-                        0
+            if current.amount_of_steps_in_same_direction >= 3 && d == &current.direction {
+                continue;
+            }
+
+            if let Some(i) = map.move_from(current.index, d) {
+                let next = Arc::new(Vertex {
+                    index: i,
+                    direction: d.clone(),
+                    amount_of_steps_in_same_direction: if d == &current.direction {
+                        current.amount_of_steps_in_same_direction + 1
                     } else {
-                        map.tiles[current_index]
-                    };
-                    if val.is_none() || v < val.unwrap() {
-                        val = Some(v);
-                    }
+                        1
+                    },
+                });
+
+                if graph.add_vertex(next.clone()) {
+                    queue.push(next.clone());
+                }
+                graph.add_edge(current.clone(), next.clone(), map.tiles[i]);
+            }
+        }
+    }
+    graph
+}
+
+fn dijkstra(graph: &Graph, source: Arc<Vertex>) -> HashMap<Arc<Vertex>, usize> {
+    let mut distances: HashMap<Arc<Vertex>, usize> = HashMap::new();
+    let mut previous: HashMap<Arc<Vertex>, Option<Arc<Vertex>>> = HashMap::new();
+    let mut queue: HashMap<Arc<Vertex>, usize> = HashMap::new();
+
+    for v in &graph.vertices {
+        distances.insert(v.clone(), usize::MAX);
+        previous.insert(v.clone(), None);
+    }
+
+    queue.insert(source.clone(), 0);
+    distances.insert(source.clone(), 0);
+
+    while !queue.is_empty() {
+        let (u, _) = queue.iter().min_by(|(_, v1), (_, v2)| v1.cmp(v2)).unwrap();
+        let u = u.clone();
+        queue.remove(&u);
+
+        if let Some(neighbors) = graph.get_edges(u.clone()) {
+            for (distance, v) in neighbors {
+                let alt = distances.get(&u).unwrap() + distance;
+                if alt < *distances.get(v).unwrap() {
+                    queue.insert(v.clone(), alt);
+                    distances.entry(v.clone()).and_modify(|v| *v = alt);
+                    previous
+                        .entry(v.clone())
+                        .and_modify(|v| *v = Some(u.clone()));
                 }
             }
         }
     }
-
-    cache.insert((path.directions, current_index), val);
-    val
+    distances
 }
 
 fn one(map: &Map<usize>) -> usize {
-    let mut cache: HashMap<([Option<Direction>; 3], usize), Option<usize>> = HashMap::new();
-    next(map, Path::new(), &mut cache, 0).unwrap()
+    println!("one");
+    let graph = build_graph(map);
+    println!("graph built");
+    let distances = dijkstra(&graph, graph.get_vertex(0).unwrap().clone());
+    println!("dijkstra done");
+    *distances
+        .iter()
+        .filter(|(k, _)| k.index == map.tiles.len() - 1)
+        .map(|(_, v)| v)
+        .min()
+        .unwrap()
 }
 
 fn two(_map: &Map<usize>) -> usize {
@@ -156,6 +201,20 @@ mod tests {
 1224686865563
 2546548887735
 4322674655533"#;
+
+    // 241343
+    // 321545
+    // 325524
+    // 344658
+    // 454665
+    // 143859
+
+    // 0    3   5   8   19   x
+    // 3    5   6   11  15   x
+    // 6    7   11  16  17   x
+    // 9    11  15  21   x   x
+    // 20   16  19   x   x   x
+    // 21   20   x   x   x   x
     #[test]
     fn test_one() {
         let map = lines_to_map(TEST_INPUT.lines().map(String::from));

@@ -129,7 +129,7 @@ I am already lagging one day behind, so the best move right now is go to sleep.
 
 That Idea about speed was bad. I spend too much time figuring out how to measure rate of expansion, and none of my 
 measurements made sense. Anyway, working idea - instead of actually expanding the universe you can gather position of 
-galaxies and just manipulate those positions. 
+galaxies andjust manipulate those positions. 
 
 Will not rewrite the first part. 
 
@@ -263,5 +263,39 @@ tiles. Without cache everything is too slow, so I am back to the same question -
 optimize amount of branches, or should I look for a completely new approach. Looks like optimizing branches are not as 
 easy as I hoped it would be. Time to get of the keyboard and think of a new approach. 
 
+The best idea I come up so far is to unroll recursion. Will do that and see how it goes.
+
+I am not smart enough to unroll that recursion. Instead ill try to do some kind of `Dijkstra's algorithm`. Here is how 
+the rough idea looks like. Initialize visited vector with `None`. Mark start index as Some(0). For every `visited tile`
+we get all `unvisited neighbors` with list of values from `visited tiles`. For every `unvisited neighbor` we get lowest 
+value from the list and put sum of that value and value of current tile to visited vector. Lowest value at the end will 
+be shortest distance.
+
+First iteration gives close to true value, but not good enough. Best guess, when `unvisited neighbor` has `visited` 
+ones that have the same value `11` and `11` for example, I do not know which one to choose, so I am choosing the first 
+one. That will impact the route later because of the `rule of three` from the task.
+
+So, let's zoom out a bit. 
+
+```
+1 2 3 4 5
+2 2 3 4 5
+3 2 3 4 5
+4 2 3 4 5
+5 2 3 4 5
+```
+
+Consider how I can get to the tile (3,3):
+
+- (0,3) E (1,3) E (2,3) E (3,3) from E with 3 E
+- (1,2) S (1,3) E (2,3) E (3,3) from E with 2 E
+- (2,1) S (2,2) S (2,3) E (3,3) from E with 1 E
+- (3,0) S (3,1) S (3,2) S (3,3) from S with 3 S
+- ...
+
+Which means my node look like:
+`(x,y, direction_from_where_we_got_here, amount_of_steps_to_the_same_direction) -> distance`. It took me some time to 
+make it work. But in the end I have two steps. First - building a graph. Second - implementing good enough 
+`Dijkstra algorithm` to find a shortest path on that graph. Can be better. But it is good enough already. 
 
 
