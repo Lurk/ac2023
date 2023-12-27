@@ -104,31 +104,25 @@ fn build_graph(map: &Map<usize>) -> Graph {
 
 fn dijkstra(graph: &Graph, source: Arc<Vertex>) -> HashMap<Arc<Vertex>, usize> {
     let mut distances: HashMap<Arc<Vertex>, usize> = HashMap::new();
-    let mut previous: HashMap<Arc<Vertex>, Option<Arc<Vertex>>> = HashMap::new();
     let mut queue: HashMap<Arc<Vertex>, usize> = HashMap::new();
-
-    for v in &graph.vertices {
-        distances.insert(v.clone(), usize::MAX);
-        previous.insert(v.clone(), None);
-    }
 
     queue.insert(source.clone(), 0);
     distances.insert(source.clone(), 0);
 
     while !queue.is_empty() {
-        let (u, _) = queue.iter().min_by(|(_, v1), (_, v2)| v1.cmp(v2)).unwrap();
-        let u = u.clone();
+        let u = queue
+            .iter()
+            .min_by(|(_, v1), (_, v2)| v1.cmp(v2))
+            .map(|(u, _)| u.clone())
+            .unwrap();
         queue.remove(&u);
 
         if let Some(neighbors) = graph.get_edges(u.clone()) {
             for (distance, v) in neighbors {
                 let alt = distances.get(&u).unwrap() + distance;
-                if alt < *distances.get(v).unwrap() {
+                if alt < *distances.get(v).unwrap_or(&usize::MAX) {
                     queue.insert(v.clone(), alt);
-                    distances.entry(v.clone()).and_modify(|v| *v = alt);
-                    previous
-                        .entry(v.clone())
-                        .and_modify(|v| *v = Some(u.clone()));
+                    distances.insert(v.clone(), alt);
                 }
             }
         }
@@ -137,11 +131,8 @@ fn dijkstra(graph: &Graph, source: Arc<Vertex>) -> HashMap<Arc<Vertex>, usize> {
 }
 
 fn one(map: &Map<usize>) -> usize {
-    println!("one");
     let graph = build_graph(map);
-    println!("graph built");
     let distances = dijkstra(&graph, graph.get_vertex(0).unwrap().clone());
-    println!("dijkstra done");
     *distances
         .iter()
         .filter(|(k, _)| k.index == map.tiles.len() - 1)
