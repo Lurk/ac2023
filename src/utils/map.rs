@@ -58,6 +58,17 @@ impl<T: Display + PartialEq + Clone> Map<T> {
         ((a_x as isize - b_x as isize).abs() + (a_y as isize - b_y as isize).abs()) as usize
     }
 
+    pub fn distance_to_border(&self, index: usize, direction: &Direction) -> usize {
+        let (x, y) = self.to_xy(index);
+        match direction {
+            Direction::North => y,
+            Direction::South => self.line_length - y - 1,
+            Direction::East => self.line_length - x - 1,
+            Direction::West => x,
+            _ => panic!("Invalid direction"),
+        }
+    }
+
     pub fn is_empty(&self) -> bool {
         self.tiles.is_empty()
     }
@@ -120,5 +131,46 @@ mod tests {
         assert_eq!(map.to_xy(3), (0, 1));
         assert_eq!(map.to_xy(4), (1, 1));
         assert_eq!(map.to_xy(5), (2, 1));
+    }
+
+    #[test]
+    fn distance_to_border() {
+        let map = Map {
+            tiles: vec![1, 2, 3, 4, 5, 6, 7, 8, 9],
+            line_length: 3,
+        };
+
+        assert_eq!(map.distance_to_border(0, &Direction::North), 0);
+        assert_eq!(map.distance_to_border(0, &Direction::South), 2);
+        assert_eq!(map.distance_to_border(0, &Direction::West), 0);
+        assert_eq!(map.distance_to_border(0, &Direction::East), 2);
+        assert_eq!(map.distance_to_border(1, &Direction::North), 0);
+        assert_eq!(map.distance_to_border(1, &Direction::South), 2);
+        assert_eq!(map.distance_to_border(1, &Direction::West), 1);
+        assert_eq!(map.distance_to_border(1, &Direction::East), 1);
+        assert_eq!(map.distance_to_border(2, &Direction::North), 0);
+        assert_eq!(map.distance_to_border(2, &Direction::South), 2);
+        assert_eq!(map.distance_to_border(2, &Direction::West), 2);
+        assert_eq!(map.distance_to_border(2, &Direction::East), 0);
+        assert_eq!(map.distance_to_border(3, &Direction::North), 1);
+        assert_eq!(map.distance_to_border(3, &Direction::South), 1);
+        assert_eq!(map.distance_to_border(3, &Direction::West), 0);
+        assert_eq!(map.distance_to_border(3, &Direction::East), 2);
+        assert_eq!(map.distance_to_border(4, &Direction::North), 1);
+        assert_eq!(map.distance_to_border(4, &Direction::South), 1);
+        assert_eq!(map.distance_to_border(4, &Direction::West), 1);
+        assert_eq!(map.distance_to_border(4, &Direction::East), 1);
+        assert_eq!(map.distance_to_border(5, &Direction::North), 1);
+        assert_eq!(map.distance_to_border(5, &Direction::South), 1);
+        assert_eq!(map.distance_to_border(5, &Direction::West), 2);
+        assert_eq!(map.distance_to_border(5, &Direction::East), 0);
+        assert_eq!(map.distance_to_border(6, &Direction::North), 2);
+        assert_eq!(map.distance_to_border(6, &Direction::South), 0);
+        assert_eq!(map.distance_to_border(6, &Direction::West), 0);
+        assert_eq!(map.distance_to_border(6, &Direction::East), 2);
+        assert_eq!(map.distance_to_border(7, &Direction::North), 2);
+        assert_eq!(map.distance_to_border(7, &Direction::South), 0);
+        assert_eq!(map.distance_to_border(7, &Direction::West), 1);
+        assert_eq!(map.distance_to_border(7, &Direction::East), 1);
     }
 }

@@ -296,6 +296,10 @@ Consider how I can get to the tile (3,3):
 Which means my node look like:
 `(x,y, direction_from_where_we_got_here, amount_of_steps_to_the_same_direction) -> distance`. It took me some time to 
 make it work. But in the end I have two steps. First - building a graph. Second - implementing good enough 
-`Dijkstra algorithm` to find a shortest path on that graph. Can be better. But it is good enough already. 
+`Dijkstra algorithm` to find a shortest path on that graph. Can be better. But it is good enough already.
+
+Part two required to build slightly different graph. Which was hard because of a new year celebration.
+
+Happy new year BTW. 
 
 

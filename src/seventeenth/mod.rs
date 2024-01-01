@@ -59,7 +59,7 @@ impl Graph {
     }
 }
 
-fn build_graph(map: &Map<usize>) -> Graph {
+fn build_graph_part_one(map: &Map<usize>) -> Graph {
     let mut graph = Graph::new();
     let mut queue: Vec<Arc<Vertex>> = vec![];
     let start = Arc::new(Vertex {
@@ -102,6 +102,67 @@ fn build_graph(map: &Map<usize>) -> Graph {
     graph
 }
 
+fn build_graph_part_two(map: &Map<usize>) -> Graph {
+    let mut graph = Graph::new();
+    let mut queue: Vec<Arc<Vertex>> = vec![];
+    let start = Arc::new(Vertex {
+        index: 0,
+        direction: Direction::Center,
+        amount_of_steps_in_same_direction: 1,
+    });
+
+    graph.add_vertex(start.clone());
+    queue.push(start.clone());
+
+    while let Some(current) = queue.pop() {
+        for d in &DIRECTIONS {
+            if current.direction != Direction::Center
+                && current.amount_of_steps_in_same_direction < 4
+                && d != &current.direction
+            {
+                continue;
+            }
+
+            if d == &current.direction.opposite() {
+                continue;
+            }
+
+            if current.amount_of_steps_in_same_direction >= 10 && d == &current.direction {
+                continue;
+            }
+
+            if map.distance_to_border(current.index, d)
+                + if d == &current.direction {
+                    current.amount_of_steps_in_same_direction
+                } else {
+                    0
+                }
+                < 4
+            {
+                continue;
+            }
+            if let Some(i) = map.move_from(current.index, d) {
+                let next = Arc::new(Vertex {
+                    index: i,
+                    direction: d.clone(),
+                    amount_of_steps_in_same_direction: if d == &current.direction {
+                        current.amount_of_steps_in_same_direction + 1
+                    } else {
+                        1
+                    },
+                });
+
+                if graph.add_vertex(next.clone()) {
+                    queue.push(next.clone());
+                }
+                graph.add_edge(current.clone(), next.clone(), map.tiles[i]);
+            }
+        }
+    }
+
+    graph
+}
+
 fn dijkstra(graph: &Graph, source: Arc<Vertex>) -> HashMap<Arc<Vertex>, usize> {
     let mut distances: HashMap<Arc<Vertex>, usize> = HashMap::new();
     let mut queue: HashMap<Arc<Vertex>, usize> = HashMap::new();
@@ -131,7 +192,7 @@ fn dijkstra(graph: &Graph, source: Arc<Vertex>) -> HashMap<Arc<Vertex>, usize> {
 }
 
 fn one(map: &Map<usize>) -> usize {
-    let graph = build_graph(map);
+    let graph = build_graph_part_one(map);
     let distances = dijkstra(&graph, graph.get_vertex(0).unwrap().clone());
     *distances
         .iter()
@@ -141,8 +202,15 @@ fn one(map: &Map<usize>) -> usize {
         .unwrap()
 }
 
-fn two(_map: &Map<usize>) -> usize {
-    0
+fn two(map: &Map<usize>) -> usize {
+    let graph = build_graph_part_two(map);
+    let distances = dijkstra(&graph, graph.get_vertex(0).unwrap().clone());
+    *distances
+        .iter()
+        .filter(|(k, _)| k.index == map.tiles.len() - 1)
+        .map(|(_, v)| v)
+        .min()
+        .unwrap()
 }
 
 fn lines_to_map(lines: impl Iterator<Item = String>) -> Map<usize> {
@@ -193,22 +261,28 @@ mod tests {
 2546548887735
 4322674655533"#;
 
-    // 241343
-    // 321545
-    // 325524
-    // 344658
-    // 454665
-    // 143859
+    const TEST_INPUT_2: &str = r#"
+111111111111
+999999999991
+999999999991
+999999999991
+999999999991"#;
 
-    // 0    3   5   8   19   x
-    // 3    5   6   11  15   x
-    // 6    7   11  16  17   x
-    // 9    11  15  21   x   x
-    // 20   16  19   x   x   x
-    // 21   20   x   x   x   x
     #[test]
     fn test_one() {
         let map = lines_to_map(TEST_INPUT.lines().map(String::from));
         assert_eq!(one(&map), 102);
+    }
+
+    #[test]
+    fn test_two_2() {
+        let map = lines_to_map(TEST_INPUT_2.lines().map(String::from));
+        assert_eq!(two(&map), 71);
+    }
+
+    #[test]
+    fn test_two() {
+        let map = lines_to_map(TEST_INPUT.lines().map(String::from));
+        assert_eq!(two(&map), 94);
     }
 }
