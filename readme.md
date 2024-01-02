@@ -300,6 +300,10 @@ make it work. But in the end I have two steps. First - building a graph. Second 
 
 Part two required to build slightly different graph. Which was hard because of a new year celebration.
 
-Happy new year BTW. 
+Happy new year BTW.
+
+## Day 18
+
+Since I already built most of the moving part (Map, Directions) part one was relatively easy to build. 
 
 

@@ -1,4 +1,4 @@
-use std::fmt::Display;
+use std::{fmt::Display, iter::repeat};
 
 use super::direction::Direction;
 
@@ -60,11 +60,46 @@ impl<T: Display + PartialEq + Clone> Map<T> {
 
     pub fn distance_to_border(&self, index: usize, direction: &Direction) -> usize {
         let (x, y) = self.to_xy(index);
+        let y_size = self.tiles.len() / self.line_length;
         match direction {
             Direction::North => y,
-            Direction::South => self.line_length - y - 1,
+            Direction::South => y_size - y - 1,
             Direction::East => self.line_length - x - 1,
             Direction::West => x,
+            _ => panic!("Invalid direction"),
+        }
+    }
+
+    pub fn extend(&mut self, direction: &Direction, amount: usize, tile: T) {
+        match direction {
+            Direction::North => {
+                self.tiles
+                    .splice(0..0, repeat(tile).take(self.line_length * amount));
+            }
+            Direction::South => {
+                self.tiles
+                    .extend(repeat(tile).take(self.line_length * amount));
+            }
+            Direction::East => {
+                let mut columns = self.get_columns().collect::<Vec<Vec<T>>>();
+                let len = if columns.is_empty() {
+                    1
+                } else {
+                    columns[0].len()
+                };
+                columns.extend(repeat(vec![tile; len]).take(amount));
+                self.replace_columns(columns);
+            }
+            Direction::West => {
+                let mut columns = self.get_columns().collect::<Vec<Vec<T>>>();
+                let len = if columns.is_empty() {
+                    1
+                } else {
+                    columns[0].len()
+                };
+                columns.splice(0..0, repeat(vec![tile; len]).take(amount));
+                self.replace_columns(columns);
+            }
             _ => panic!("Invalid direction"),
         }
     }
@@ -172,5 +207,33 @@ mod tests {
         assert_eq!(map.distance_to_border(7, &Direction::South), 0);
         assert_eq!(map.distance_to_border(7, &Direction::West), 1);
         assert_eq!(map.distance_to_border(7, &Direction::East), 1);
+    }
+
+    #[test]
+    fn test_extend() {
+        let mut map = Map {
+            tiles: vec![1, 2, 3, 4, 5, 6, 7, 8, 9],
+            line_length: 3,
+        };
+
+        map.extend(&Direction::North, 1, 0);
+        assert_eq!(map.tiles, vec![0, 0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+        //
+        map.extend(&Direction::South, 1, 0);
+        assert_eq!(map.tiles, vec![0, 0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 0, 0]);
+
+        map.extend(&Direction::East, 1, 0);
+        assert_eq!(map.line_length, 4);
+        assert_eq!(
+            map.tiles,
+            vec![0, 0, 0, 0, 1, 2, 3, 0, 4, 5, 6, 0, 7, 8, 9, 0, 0, 0, 0, 0]
+        );
+
+        map.extend(&Direction::West, 1, 0);
+        assert_eq!(map.line_length, 5);
+        assert_eq!(
+            map.tiles,
+            vec![0, 0, 0, 0, 0, 0, 1, 2, 3, 0, 0, 4, 5, 6, 0, 0, 7, 8, 9, 0, 0, 0, 0, 0, 0]
+        );
     }
 }
