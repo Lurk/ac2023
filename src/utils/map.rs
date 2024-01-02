@@ -73,12 +73,12 @@ impl<T: Display + PartialEq + Clone> Map<T> {
     pub fn extend(&mut self, direction: &Direction, amount: usize, tile: T) {
         match direction {
             Direction::North => {
-                self.tiles
-                    .splice(0..0, repeat(tile).take(self.line_length * amount));
+                let mut tiles = vec![tile; self.line_length * amount];
+                tiles.append(&mut self.tiles);
+                self.tiles = tiles;
             }
             Direction::South => {
-                self.tiles
-                    .extend(repeat(tile).take(self.line_length * amount));
+                self.tiles.extend(vec![tile; self.line_length * amount]);
             }
             Direction::East => {
                 let mut columns = self.get_columns().collect::<Vec<Vec<T>>>();
