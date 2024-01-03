@@ -1,14 +1,31 @@
-use std::{usize, vec};
+use std::{time::Instant, usize, vec};
 
 use crate::{
     utils::{direction::Direction, get_non_empty_lines, map::Map},
     Part, Runner,
 };
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 struct Instruction {
     direction: Direction,
     amount_of_steps: usize,
+}
+
+impl Instruction {
+    pub fn from_color(mut color: String) -> Self {
+        println!("color: {}", color);
+        let d = color.pop().expect("should have a direction");
+        Instruction {
+            direction: match d {
+                '0' => Direction::East,
+                '1' => Direction::South,
+                '2' => Direction::West,
+                '3' => Direction::North,
+                _ => panic!("Invalid direction"),
+            },
+            amount_of_steps: usize::from_str_radix(color.as_str(), 16).expect("should be a number"),
+        }
+    }
 }
 
 impl From<&str> for Instruction {
@@ -41,6 +58,7 @@ fn build_map(instructions: impl Iterator<Item = Instruction>) -> Map<char> {
 
     let mut index = 0;
     for instruction in instructions {
+        let now = Instant::now();
         let distance_to_border = map.distance_to_border(index, &instruction.direction);
         if distance_to_border < instruction.amount_of_steps {
             let (_, y) = map.to_xy(index);
@@ -54,6 +72,7 @@ fn build_map(instructions: impl Iterator<Item = Instruction>) -> Map<char> {
                 index += amount * y;
             }
         }
+        println!("extend: {:?}", now.elapsed());
         for _ in 0..instruction.amount_of_steps {
             index = map
                 .move_from(index, &instruction.direction)
@@ -65,6 +84,7 @@ fn build_map(instructions: impl Iterator<Item = Instruction>) -> Map<char> {
                 });
             map.tiles[index] = instruction.direction.clone().into();
         }
+        println!("move: {:?}", now.elapsed());
     }
     map
 }
@@ -94,8 +114,17 @@ fn fill(map: &mut Map<char>) {
     }
 }
 
-fn two() -> usize {
-    todo!()
+fn two(input: impl Iterator<Item = String>) -> usize {
+    let mut map = build_map(
+        input
+            .map(|s| {
+                let (_, c) = s.rsplit_once(' ').unwrap();
+                c[2..c.len() - 1].to_string()
+            })
+            .map(Instruction::from_color),
+    );
+    fill(&mut map);
+    map.tiles.iter().filter(|x| **x != '.').count()
 }
 
 fn one(input: impl Iterator<Item = String>) -> usize {
@@ -107,7 +136,7 @@ fn one(input: impl Iterator<Item = String>) -> usize {
 pub fn run(runner: &Runner) {
     let result = match runner.part {
         Part::One => one(get_non_empty_lines(&runner.path)),
-        Part::Two => two(),
+        Part::Two => two(get_non_empty_lines(&runner.path)),
     };
     println!("Result: {}", result);
 }
@@ -145,5 +174,13 @@ U 2 (#7a21e3)
     #[test]
     fn test_one() {
         assert_eq!(one(TEST_INPUT.trim().lines().map(|s| s.to_string())), 62);
+    }
+
+    #[test]
+    fn test_from_color() {
+        assert_eq!(
+            Instruction::from_color("70c710".to_string()),
+            Instruction::from("R 461937")
+        );
     }
 }

@@ -70,34 +70,50 @@ impl<T: Display + PartialEq + Clone> Map<T> {
     }
 
     pub fn extend(&mut self, direction: &Direction, amount: usize, tile: T) {
+        let now = std::time::Instant::now();
         match direction {
             Direction::North => {
                 let mut tiles = vec![tile; self.line_length * amount];
                 tiles.append(&mut self.tiles);
                 self.tiles = tiles;
+                println!("north extend: {:?}", now.elapsed());
             }
             Direction::South => {
                 self.tiles.extend(vec![tile; self.line_length * amount]);
+                println!("south extend: {:?}", now.elapsed());
             }
             Direction::East => {
-                let mut columns = self.get_columns().collect::<Vec<Vec<T>>>();
-                let len = if columns.is_empty() {
-                    1
-                } else {
-                    columns[0].len()
-                };
-                columns.extend(repeat(vec![tile; len]).take(amount));
-                self.replace_columns(columns);
+                println!(
+                    "amount: {}, columns_count: {}",
+                    amount,
+                    self.get_columns_count()
+                );
+                let vec = vec![tile; amount];
+                self.tiles = self
+                    .tiles
+                    .chunks(self.line_length)
+                    .flat_map(|chunk| {
+                        let mut chunk = chunk.to_vec();
+                        chunk.extend(vec.clone());
+                        chunk
+                    })
+                    .collect();
+                self.line_length += amount;
+                println!("east extend: {:?}", now.elapsed());
             }
             Direction::West => {
-                let mut columns = self.get_columns().collect::<Vec<Vec<T>>>();
-                let len = if columns.is_empty() {
-                    1
-                } else {
-                    columns[0].len()
-                };
-                columns.splice(0..0, repeat(vec![tile; len]).take(amount));
-                self.replace_columns(columns);
+                let vec = vec![tile; amount];
+                self.tiles = self
+                    .tiles
+                    .chunks(self.line_length)
+                    .flat_map(|chunk| {
+                        let mut v = vec.clone();
+                        v.extend(chunk.to_vec());
+                        v
+                    })
+                    .collect();
+                self.line_length += amount;
+                println!("west extend: {:?}", now.elapsed());
             }
             _ => panic!("Invalid direction"),
         }
@@ -222,11 +238,11 @@ mod tests {
         assert_eq!(map.tiles, vec![0, 0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 0, 0]);
 
         map.extend(&Direction::East, 1, 0);
-        assert_eq!(map.line_length, 4);
         assert_eq!(
             map.tiles,
             vec![0, 0, 0, 0, 1, 2, 3, 0, 4, 5, 6, 0, 7, 8, 9, 0, 0, 0, 0, 0]
         );
+        assert_eq!(map.line_length, 4);
 
         map.extend(&Direction::West, 1, 0);
         assert_eq!(map.line_length, 5);
