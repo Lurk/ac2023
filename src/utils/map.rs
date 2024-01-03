@@ -22,12 +22,11 @@ impl<T: Display + PartialEq + Clone> Map<T> {
 
     pub fn get_columns(&self) -> impl Iterator<Item = Vec<T>> + '_ {
         (0..self.line_length).map(move |i| {
-            self.tiles
-                .iter()
-                .enumerate()
-                .filter(|(j, _)| j % self.line_length == i)
-                .map(|(_, x)| x.clone())
-                .collect()
+            let mut column = Vec::new();
+            for j in 0..self.get_columns_count() {
+                column.push(self.tiles[j * self.line_length + i].clone());
+            }
+            column
         })
     }
 
