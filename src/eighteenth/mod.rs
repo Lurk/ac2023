@@ -98,16 +98,15 @@ fn two() -> usize {
     todo!()
 }
 
-fn one(map: &mut Map<char>) -> usize {
-    fill(map);
+fn one(input: impl Iterator<Item = String>) -> usize {
+    let mut map = build_map(input.map(Instruction::from));
+    fill(&mut map);
     map.tiles.iter().filter(|x| **x != '.').count()
 }
 
 pub fn run(runner: &Runner) {
-    let mut map = build_map(get_non_empty_lines(&runner.path).map(Instruction::from));
-
     let result = match runner.part {
-        Part::One => one(&mut map),
+        Part::One => one(get_non_empty_lines(&runner.path)),
         Part::Two => two(),
     };
     println!("Result: {}", result);
@@ -145,8 +144,6 @@ U 2 (#7a21e3)
 
     #[test]
     fn test_one() {
-        let instructions = TEST_INPUT.trim().lines().map(Instruction::from);
-        let mut map = build_map(instructions);
-        assert_eq!(one(&mut map), 62);
+        assert_eq!(one(TEST_INPUT.trim().lines().map(|s| s.to_string())), 62);
     }
 }
