@@ -1,4 +1,4 @@
-use std::{fmt::Display, iter::repeat};
+use std::fmt::Display;
 
 use super::direction::Direction;
 
@@ -70,24 +70,16 @@ impl<T: Display + PartialEq + Clone> Map<T> {
     }
 
     pub fn extend(&mut self, direction: &Direction, amount: usize, tile: T) {
-        let now = std::time::Instant::now();
         match direction {
             Direction::North => {
                 let mut tiles = vec![tile; self.line_length * amount];
                 tiles.append(&mut self.tiles);
                 self.tiles = tiles;
-                println!("north extend: {:?}", now.elapsed());
             }
             Direction::South => {
                 self.tiles.extend(vec![tile; self.line_length * amount]);
-                println!("south extend: {:?}", now.elapsed());
             }
             Direction::East => {
-                println!(
-                    "amount: {}, columns_count: {}",
-                    amount,
-                    self.get_columns_count()
-                );
                 let vec = vec![tile; amount];
                 self.tiles = self
                     .tiles
@@ -99,7 +91,6 @@ impl<T: Display + PartialEq + Clone> Map<T> {
                     })
                     .collect();
                 self.line_length += amount;
-                println!("east extend: {:?}", now.elapsed());
             }
             Direction::West => {
                 let vec = vec![tile; amount];
@@ -113,7 +104,6 @@ impl<T: Display + PartialEq + Clone> Map<T> {
                     })
                     .collect();
                 self.line_length += amount;
-                println!("west extend: {:?}", now.elapsed());
             }
             _ => panic!("Invalid direction"),
         }
