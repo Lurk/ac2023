@@ -130,13 +130,13 @@ fn two(input: impl Iterator<Item = String>) -> usize {
             .map(Instruction::from_color),
     );
     fill(&mut map);
-    map.tiles.iter().filter(|x| **x != '.').count()
+    map.tiles.iter().filter(|x| **x != 0).count()
 }
 
 fn one(input: impl Iterator<Item = String>) -> usize {
     let mut map = build_map(input.map(Instruction::from));
     fill(&mut map);
-    map.tiles.iter().filter(|x| **x != '.').count()
+    map.tiles.iter().filter(|x| **x != 0).count()
 }
 
 pub fn run(runner: &Runner) {
