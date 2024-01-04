@@ -50,9 +50,9 @@ impl From<String> for Instruction {
     }
 }
 
-fn build_map(instructions: impl Iterator<Item = Instruction>) -> Map<char> {
+fn build_map(instructions: impl Iterator<Item = Instruction>) -> Map<u8> {
     let mut map = Map {
-        tiles: vec!['0'],
+        tiles: vec![0],
         line_length: 1,
     };
 
@@ -63,7 +63,7 @@ fn build_map(instructions: impl Iterator<Item = Instruction>) -> Map<char> {
         if distance_to_border < instruction.amount_of_steps {
             let (_, y) = map.to_xy(index);
             let amount = instruction.amount_of_steps - distance_to_border;
-            map.extend(&instruction.direction, amount, '.');
+            map.extend(&instruction.direction, amount, 0);
             if instruction.direction == Direction::West {
                 index += amount * (y + 1);
             } else if instruction.direction == Direction::North {
@@ -82,21 +82,27 @@ fn build_map(instructions: impl Iterator<Item = Instruction>) -> Map<char> {
                         index, instruction.direction
                     )
                 });
-            map.tiles[index] = instruction.direction.clone().into();
+            map.tiles[index] = match instruction.direction {
+                Direction::East => 1,
+                Direction::South => 2,
+                Direction::West => 3,
+                Direction::North => 4,
+                _ => panic!("Invalid direction"),
+            };
         }
         println!("move: {:?}", now.elapsed());
     }
     map
 }
 
-fn fill(map: &mut Map<char>) {
+fn fill(map: &mut Map<u8>) {
     for index in 0..map.tiles.len() {
         let d = match map.tiles[index] {
-            'n' => vec![Direction::East],
-            'e' => vec![Direction::South],
-            's' => vec![Direction::West],
-            'w' => vec![Direction::North],
-            'i' => vec![
+            4 => vec![Direction::East],
+            1 => vec![Direction::South],
+            2 => vec![Direction::West],
+            3 => vec![Direction::North],
+            5 => vec![
                 Direction::East,
                 Direction::South,
                 Direction::West,
@@ -106,8 +112,8 @@ fn fill(map: &mut Map<char>) {
         };
         for direction in d {
             if let Some(i) = map.move_from(index, &direction) {
-                if map.tiles[i] == '.' {
-                    map.tiles[i] = 'i';
+                if map.tiles[i] == 0 {
+                    map.tiles[i] = 5;
                 }
             }
         }
