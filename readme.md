@@ -304,6 +304,31 @@ Happy new year BTW.
 
 ## Day 18
 
-Since I already built most of the moving part (Map, Directions) part one was relatively easy to build. 
+Since I already built most of the moving parts (Map, Directions) part one was relatively easy to build.
+
+Current map expansion is way to slow for the part two. 
+
+Ok. I made it faster. Now I am running out of memory. Even if I use `u8` instead of `char` as my tile, it still tries 
+to allocate more that 150 gigs of ram. 
+
+ There should be formula to calculate area of polygon. 
+
+Turned out there is [Shoelace formula](https://en.wikipedia.org/wiki/Shoelace_formula) with straightforward 
+implementation. 
+
+The answer is `too low`. Hmmm.
+
+It gives almost expected result on a test data:
+
+- 952404941483
+- 952408144115
+
+I suspect it is because Shoelace formula does not account for the 'trench' which should be our perimeter. 
+
+No. It is too big. 
+
+Can it be half of it? It is. Almost. I don't know why (too sleepy to figure it out) but the difference between Shoelace
+formula result and expected area is `perimeter / 2 + 1`. 
+
 
 

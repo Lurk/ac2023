@@ -69,46 +69,6 @@ impl<T: Display + PartialEq + Clone> Map<T> {
         }
     }
 
-    pub fn extend(&mut self, direction: &Direction, amount: usize, tile: T) {
-        match direction {
-            Direction::North => {
-                let mut tiles = vec![tile; self.line_length * amount];
-                tiles.append(&mut self.tiles);
-                self.tiles = tiles;
-            }
-            Direction::South => {
-                self.tiles.extend(vec![tile; self.line_length * amount]);
-            }
-            Direction::East => {
-                let vec = vec![tile; amount];
-                self.tiles = self
-                    .tiles
-                    .chunks(self.line_length)
-                    .flat_map(|chunk| {
-                        let mut chunk = chunk.to_vec();
-                        chunk.extend(vec.clone());
-                        chunk
-                    })
-                    .collect();
-                self.line_length += amount;
-            }
-            Direction::West => {
-                let vec = vec![tile; amount];
-                self.tiles = self
-                    .tiles
-                    .chunks(self.line_length)
-                    .flat_map(|chunk| {
-                        let mut v = vec.clone();
-                        v.extend(chunk.to_vec());
-                        v
-                    })
-                    .collect();
-                self.line_length += amount;
-            }
-            _ => panic!("Invalid direction"),
-        }
-    }
-
     pub fn is_empty(&self) -> bool {
         self.tiles.is_empty()
     }
@@ -212,33 +172,5 @@ mod tests {
         assert_eq!(map.distance_to_border(7, &Direction::South), 0);
         assert_eq!(map.distance_to_border(7, &Direction::West), 1);
         assert_eq!(map.distance_to_border(7, &Direction::East), 1);
-    }
-
-    #[test]
-    fn test_extend() {
-        let mut map = Map {
-            tiles: vec![1, 2, 3, 4, 5, 6, 7, 8, 9],
-            line_length: 3,
-        };
-
-        map.extend(&Direction::North, 1, 0);
-        assert_eq!(map.tiles, vec![0, 0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
-        //
-        map.extend(&Direction::South, 1, 0);
-        assert_eq!(map.tiles, vec![0, 0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 0, 0]);
-
-        map.extend(&Direction::East, 1, 0);
-        assert_eq!(
-            map.tiles,
-            vec![0, 0, 0, 0, 1, 2, 3, 0, 4, 5, 6, 0, 7, 8, 9, 0, 0, 0, 0, 0]
-        );
-        assert_eq!(map.line_length, 4);
-
-        map.extend(&Direction::West, 1, 0);
-        assert_eq!(map.line_length, 5);
-        assert_eq!(
-            map.tiles,
-            vec![0, 0, 0, 0, 0, 0, 1, 2, 3, 0, 0, 4, 5, 6, 0, 0, 7, 8, 9, 0, 0, 0, 0, 0, 0]
-        );
     }
 }
