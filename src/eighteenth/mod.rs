@@ -47,12 +47,12 @@ impl From<String> for Instruction {
     }
 }
 
-fn shoelace_area_of_polygon(edges: &[(i64, i64)]) -> i64 {
-    edges
+fn shoelace_area_of_polygon(vertices: &[(i64, i64)]) -> i64 {
+    vertices
         .windows(2)
-        .fold(0, |acc, edge| {
-            let (x1, y1) = edge[0];
-            let (x2, y2) = edge[1];
+        .fold(0, |acc, vertex| {
+            let (x1, y1) = vertex[0];
+            let (x2, y2) = vertex[1];
             acc + x1 * y2 - x2 * y1
         })
         .abs()
@@ -63,7 +63,7 @@ fn instructions_to_area(instructions: impl Iterator<Item = Instruction>) -> i64 
     let mut x = 0;
     let mut y = 0;
     let mut len = 0;
-    let mut edges: Vec<(i64, i64)> = vec![(x, y)];
+    let mut vertices: Vec<(i64, i64)> = vec![(x, y)];
     for instruction in instructions {
         len += instruction.amount_of_steps;
         match instruction.direction {
@@ -74,10 +74,10 @@ fn instructions_to_area(instructions: impl Iterator<Item = Instruction>) -> i64 
             _ => panic!("Invalid direction"),
         }
 
-        edges.push((x, y));
+        vertices.push((x, y));
     }
 
-    shoelace_area_of_polygon(&edges) + len / 2 + 1
+    shoelace_area_of_polygon(&vertices) + len / 2 + 1
 }
 
 fn two(input: impl Iterator<Item = String>) -> i64 {
