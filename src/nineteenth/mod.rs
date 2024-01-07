@@ -1,8 +1,8 @@
 use std::{collections::HashMap, fs::read_to_string, sync::Arc, usize};
 
-use crate::{utils::get_lines, Runner};
+use crate::Runner;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 enum Op {
     GreaterThan,
     LessThan,
@@ -79,7 +79,9 @@ struct Rule {
     value: usize,
 }
 
-fn parse_rules(rules: &str) -> HashMap<Arc<str>, Vec<RuleType>> {
+type Rules = HashMap<Arc<str>, Vec<RuleType>>;
+
+fn parse_rules(rules: &str) -> Rules {
     rules
         .lines()
         .map(|line| {
@@ -116,18 +118,16 @@ fn parse_parts(parts: &str) -> Vec<Vec<(char, usize)>> {
         .collect()
 }
 
-fn parse(str: &str) -> (HashMap<Arc<str>, Vec<RuleType>>, Vec<Vec<(char, usize)>>) {
+fn parse(str: &str) -> (Rules, Vec<Vec<(char, usize)>>) {
     let (rules, parts) = str
         .trim()
         .split_once("\n\n")
         .expect("input to have two parts");
 
-    let rules: HashMap<Arc<str>, Vec<RuleType>> = parse_rules(rules);
-    let parts: Vec<Vec<(char, usize)>> = parse_parts(parts);
-    (rules, parts)
+    (parse_rules(rules), parse_parts(parts))
 }
 
-fn acceptnce(part: &[(char, usize)], rules: &HashMap<Arc<str>, Vec<RuleType>>) -> bool {
+fn acceptnce(part: &[(char, usize)], rules: &Rules) -> bool {
     let mut key = Arc::from("in");
     while let Some(rule) = rules.get(&key) {
         let target = rule
@@ -171,12 +171,145 @@ fn one(input: &str) -> usize {
         .sum()
 }
 
+#[derive(Clone, Debug)]
+struct Range {
+    left: usize,
+    right: usize,
+}
+
+impl Default for Range {
+    fn default() -> Self {
+        Self {
+            left: 1,
+            right: 4000,
+        }
+    }
+}
+
+#[derive(Clone, Debug)]
+struct Ranges {
+    x: Range,
+    m: Range,
+    a: Range,
+    s: Range,
+}
+
+impl Ranges {
+    fn get_filed_mut(&mut self, field: char) -> &mut Range {
+        match field {
+            'x' => &mut self.x,
+            'm' => &mut self.m,
+            'a' => &mut self.a,
+            's' => &mut self.s,
+            _ => panic!("Invalid field"),
+        }
+    }
+
+    fn split_on(&mut self, rule: &Rule) -> Option<Self> {
+        let mut new_range = self.clone();
+        let filed = self.get_filed_mut(rule.field);
+        if rule.op == Op::GreaterThan && rule.value > filed.left && rule.value <= filed.right {
+            filed.right = rule.value;
+            new_range.get_filed_mut(rule.field).left = rule.value + 1;
+            return Some(new_range);
+        } else if rule.op == Op::LessThan && rule.value < filed.right && rule.value >= filed.left {
+            filed.left = rule.value;
+            new_range.get_filed_mut(rule.field).right = rule.value - 1;
+            return Some(new_range);
+        }
+        None
+    }
+
+    fn permutations_count(&self) -> usize {
+        (self.x.right - self.x.left + 1)
+            * (self.m.right - self.m.left + 1)
+            * (self.a.right - self.a.left + 1)
+            * (self.s.right - self.s.left + 1)
+    }
+}
+
+struct QueueItem {
+    key: Arc<str>,
+    current_ranges: Ranges,
+}
+
+enum NextType {
+    QueueItem(QueueItem),
+    Range(Ranges),
+}
+
+impl QueueItem {
+    fn next(&self, rules: &Rules) -> Vec<NextType> {
+        let mut res = vec![];
+        if let Some(rule) = rules.get(&self.key) {
+            let mut left = self.current_ranges.clone();
+            for r in rule {
+                match r {
+                    RuleType::Rule(rule) => {
+                        if let Some(right) = left.split_on(rule) {
+                            match &rule.target {
+                                Target::Result(WorkflowResult::Accept) => {
+                                    res.push(NextType::Range(right.clone()))
+                                }
+                                Target::Rule(r) => res.push(NextType::QueueItem(QueueItem {
+                                    key: r.clone(),
+                                    current_ranges: right.clone(),
+                                })),
+                                _ => {}
+                            }
+                        }
+                    }
+                    RuleType::Fallback(target) => match target {
+                        Target::Result(WorkflowResult::Accept) => {
+                            res.push(NextType::Range(left.clone()))
+                        }
+                        Target::Rule(rule) => res.push(NextType::QueueItem(QueueItem {
+                            key: rule.clone(),
+                            current_ranges: left.clone(),
+                        })),
+                        _ => {}
+                    },
+                }
+            }
+        }
+        res
+    }
+}
+
+fn two(input: &str) -> usize {
+    let (rules, _) = parse(input);
+    let mut res: Vec<Ranges> = vec![];
+    let mut queue: Vec<QueueItem> = vec![QueueItem {
+        key: Arc::from("in"),
+        current_ranges: Ranges {
+            x: Range::default(),
+            m: Range::default(),
+            a: Range::default(),
+            s: Range::default(),
+        },
+    }];
+
+    while let Some(item) = queue.pop() {
+        let next = item.next(&rules);
+        for n in next {
+            match n {
+                NextType::QueueItem(item) => queue.push(item),
+                NextType::Range(ranges) => res.push(ranges),
+            }
+        }
+    }
+
+    res.iter().map(|r| r.permutations_count()).sum::<usize>()
+}
+
 pub fn run(runner: &Runner) {
     let res = match runner.part {
         crate::Part::One => one(read_to_string(&runner.path)
             .expect("Should have been able to read the file")
             .as_str()),
-        crate::Part::Two => todo!(),
+        crate::Part::Two => two(read_to_string(&runner.path)
+            .expect("Should have been able to read the file")
+            .as_str()),
     };
     println!("{}", res);
 }
@@ -221,5 +354,10 @@ hdj{m>838:A,pv}
     #[test]
     fn test_one() {
         assert_eq!(one(TEST_INPUT), 19_114);
+    }
+
+    #[test]
+    fn test_two() {
+        assert_eq!(two(TEST_INPUT), 167409079868000);
     }
 }

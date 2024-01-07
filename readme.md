@@ -334,5 +334,6 @@ formula result and expected area is `perimeter / 2 + 1`.
 
 Part one has complicated rules to encode, and maybe I over engineered it a bit.
 
-
+Same is true for the part two. Even after I wrapped my head around what needs to be done, it was hard to keep all 
+requirements in mind. Right naming helps a lot. 
 
