@@ -330,5 +330,9 @@ No. It is too big.
 Can it be half of it? It is. Almost. I don't know why (too sleepy to figure it out) but the difference between Shoelace
 formula result and expected area is `perimeter / 2 + 1`. 
 
+## Day 19
+
+Part one has complicated rules to encode, and maybe I over engineered it a bit.
+
 
 
