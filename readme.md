@@ -344,3 +344,6 @@ It is this kind of day, tests are green but result on a real data is `too low`.
 I don't see any obvious error and too sleepy to continue looking. 
 
 Yep. That was bug in parsing. Lets see what's in the part two.
+
+Part two always starts with "I can brute force through it". Didn't work this time.
+ 
