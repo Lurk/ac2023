@@ -208,13 +208,6 @@ fn parse(input: impl Iterator<Item = String>) -> Modules {
     let mut modules = HashMap::new();
     for line in input {
         let module: ModuleType = line.into();
-        for destination in module.destinations() {
-            modules.entry(destination.clone()).and_modify(|m| {
-                if let ModuleType::Conjuction(module) = m {
-                    module.add_input(module.id());
-                }
-            });
-        }
         modules.insert(module.id(), module);
     }
 
