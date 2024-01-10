@@ -219,7 +219,7 @@ fn parse(input: impl Iterator<Item = String>) -> Modules {
     let mut modules: Modules = vec![ModuleType::Empty; builder.len() + 10];
 
     map.insert(String::from("broadcaster"), 1);
-    map.insert(String::from("nx"), 2);
+    map.insert(String::from("rx"), 2);
 
     for b in builder {
         let id = *map.entry(b.id).or_insert_with(|| {
@@ -294,8 +294,9 @@ fn one(modules: &mut Modules) -> usize {
 }
 
 fn two(modules: &mut Modules) -> usize {
-    let mut fifo: Vec<Signal> = Vec::with_capacity(100000);
-    for i in 0..10_000_000 {
+    let mut fifo: Vec<Signal> = Vec::with_capacity(100);
+    // println!("{:#?}", modules);
+    for i in 0..1_000_000_000 {
         // let now = std::time::Instant::now();
         fifo.clear();
         fifo.push(Signal {
@@ -307,8 +308,21 @@ fn two(modules: &mut Modules) -> usize {
 
         while n < fifo.len() {
             let signal = &fifo[n];
-            if signal.value == SignalType::Low && signal.destination == 2 {
-                return i;
+            if signal.destination == 49 && signal.value == SignalType::High {
+                println!(
+                    "button press# {}, origin: {}, value: {:?}",
+                    i, signal.origin, signal.value
+                );
+                // println!("{:#?}", signal);
+                // println!("{:#?}", modules[signal.destination]);
+            }
+            if signal.destination == 2 {
+                // println!("{:#?}", signal);
+                // println!(" 2: i: {}, hit: {}, len: {}", i, n, fifo.len(),);
+                if signal.value == SignalType::Low {
+                    return i;
+                }
+                // breaak;
             }
             fifo.extend(modules[signal.destination].receive(signal));
             n += 1;

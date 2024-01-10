@@ -346,4 +346,21 @@ I don't see any obvious error and too sleepy to continue looking.
 Yep. That was bug in parsing. Lets see what's in the part two.
 
 Part two always starts with "I can brute force through it". Didn't work this time.
+
+While looking at various debug output, i noticed a pattern:
+
+```
+button press# 3778, origin: 7, value: High
+button press# 3888, origin: 28, value: High
+button press# 3906, origin: 53, value: High
+button press# 4050, origin: 38, value: High
+button press# 7557, origin: 7, value: High
+button press# 7777, origin: 28, value: High
+button press# 7813, origin: 53, value: High
+button press# 8101, origin: 38, value: High
+button press# 11336, origin: 7, value: High
+```
+
+I need all of those origins to be High at the same button press. Which looks like task for the `LCM`. Will check it out 
+tomorrow.
  
