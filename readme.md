@@ -363,4 +363,6 @@ button press# 11336, origin: 7, value: High
 
 I need all of those origins to be High at the same button press. Which looks like task for the `LCM`. Will check it out 
 tomorrow.
- 
+
+Yeah. I was on a right track yesterday. The answer is an `LCM` of button presses amount, with one caveat. The count 
+should start from 1 not from 0. 

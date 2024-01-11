@@ -3,7 +3,10 @@ use std::{
     usize,
 };
 
-use crate::{utils::get_non_empty_lines, Runner};
+use crate::{
+    utils::{euclidic_lcm, get_non_empty_lines},
+    Runner,
+};
 
 #[derive(Debug, Clone, Eq, PartialEq)]
 enum SignalType {
@@ -295,9 +298,9 @@ fn one(modules: &mut Modules) -> usize {
 
 fn two(modules: &mut Modules) -> usize {
     let mut fifo: Vec<Signal> = Vec::with_capacity(100);
-    // println!("{:#?}", modules);
-    for i in 0..1_000_000_000 {
-        // let now = std::time::Instant::now();
+    let mut buttons: Vec<usize> = vec![];
+    let mut i = 1;
+    while buttons.len() < 4 {
         fifo.clear();
         fifo.push(Signal {
             origin: 0,
@@ -309,28 +312,18 @@ fn two(modules: &mut Modules) -> usize {
         while n < fifo.len() {
             let signal = &fifo[n];
             if signal.destination == 49 && signal.value == SignalType::High {
-                println!(
-                    "button press# {}, origin: {}, value: {:?}",
-                    i, signal.origin, signal.value
-                );
-                // println!("{:#?}", signal);
-                // println!("{:#?}", modules[signal.destination]);
-            }
-            if signal.destination == 2 {
-                // println!("{:#?}", signal);
-                // println!(" 2: i: {}, hit: {}, len: {}", i, n, fifo.len(),);
-                if signal.value == SignalType::Low {
-                    return i;
-                }
-                // breaak;
+                buttons.push(i);
             }
             fifo.extend(modules[signal.destination].receive(signal));
             n += 1;
         }
-        // println!("{}: {:?}", i, now.elapsed());
+        i += 1;
     }
 
-    0
+    euclidic_lcm(
+        buttons[0],
+        euclidic_lcm(buttons[1], euclidic_lcm(buttons[2], buttons[3])),
+    )
 }
 
 pub fn run(runner: &Runner) {
