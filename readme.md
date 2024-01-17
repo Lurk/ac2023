@@ -365,4 +365,71 @@ I need all of those origins to be High at the same button press. Which looks lik
 tomorrow.
 
 Yeah. I was on a right track yesterday. The answer is an `LCM` of button presses amount, with one caveat. The count 
-should start from 1 not from 0. 
+should start from 1 not from 0.
+
+# Day 21
+
+First part was very easy to brute force. Just flip tiles on the map and then count the values. 
+
+In part two it was obvious from the beginning that growing map will not fit to the memory. First Idea. I will have a 
+queue where I will push back next positions on the map, and pop front positions that I need to calculate on the current 
+step.
+
+Hm. It gives more positions that I need. Oh. Oh. One point gives four possible points on the next step. Each of those
+points on the next step will get back to previous point. And I need only one of those. Can't figure out nothing smarter 
+than a HashSet.
+
+It takes too long to compute 1000 steps on a test data. I need to figure out if there is a repeating pattern in the 
+result. The result is growing each step. The rate of growth is also growing. What about that rate?
+
+There is a pattern. On a test data, starting from step 39, second derivative is `2` every eleventh step. 
+
+```
+39: 944 d: 50, d2: 2
+40: 989 d: 45, d2: -5
+41: 1053 d: 64, d2: 19
+42: 1107 d: 54, d2: -10
+43: 1146 d: 39, d2: -15
+44: 1196 d: 50, d2: 11
+45: 1256 d: 60, d2: 10
+46: 1324 d: 68, d2: 8
+47: 1383 d: 59, d2: -9
+48: 1464 d: 81, d2: 22
+49: 1528 d: 64, d2: -17
+50: 1594 d: 66, d2: 2
+51: 1653 d: 59, d2: -7
+52: 1735 d: 82, d2: 23
+53: 1805 d: 70, d2: -12
+54: 1853 d: 48, d2: -22
+55: 1914 d: 61, d2: 13
+56: 1988 d: 74, d2: 13
+57: 2072 d: 84, d2: 10
+58: 2145 d: 73, d2: -11
+59: 2244 d: 99, d2: 26
+60: 2324 d: 80, d2: -19
+61: 2406 d: 82, d2: 2
+62: 2479 d: 73, d2: -9
+63: 2579 d: 100, d2: 27
+64: 2665 d: 86, d2: -14
+65: 2722 d: 57, d2: -29
+66: 2794 d: 72, d2: 15
+67: 2882 d: 88, d2: 16
+68: 2982 d: 100, d2: 12
+69: 3069 d: 87, d2: -13
+70: 3186 d: 117, d2: 30
+71: 3282 d: 96, d2: -21
+72: 3380 d: 98, d2: 2
+```
+
+And while all other values are all over the place the sum of second derivatives of those ten steps is always 16. There 
+is two problems though. While I can eyeball it, I can't come up with a way to detect such a pattern, and most 
+importantly - I have no clue how that can help me to solve my problem. Yet. 
+
+Map from test input happens to be square and eleven is the length of a side.
+
+Before I start to think how that can help me and then how to detect such a pattern, I want to check if such pattern 
+even exists on real input.
+
+I can not eyeball it on 1000 steps. After adding grouping by second derivative the pattern is clearly visible there.
+Starting from step 132 `0` repeats every 131 step. Is length of a side in the real input. Looks like this is the way to 
+to detect a pattern. Get a side length, iterate through the steps until there will be repeating second derivative. 

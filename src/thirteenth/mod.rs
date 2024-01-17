@@ -22,7 +22,7 @@ fn find_reflection(map: &Map<char>, skip: &Option<Type>) -> Type {
         }
     }
     let column = map.get_columns().next().unwrap();
-    for i in 1..map.get_columns_count() {
+    for i in 1..map.get_rows_count() {
         if skip == &Some(Type::Vertical(i)) {
             continue;
         }

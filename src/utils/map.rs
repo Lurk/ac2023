@@ -17,20 +17,21 @@ impl<T: Display + PartialEq + Clone> Map<T> {
     }
 
     pub fn replace_rows(&mut self, rows: Vec<Vec<T>>) {
+        self.line_length = rows[0].len();
         self.tiles = rows.into_iter().flatten().collect();
     }
 
     pub fn get_columns(&self) -> impl Iterator<Item = Vec<T>> + '_ {
         (0..self.line_length).map(move |i| {
             let mut column = Vec::new();
-            for j in 0..self.get_columns_count() {
+            for j in 0..self.get_rows_count() {
                 column.push(self.tiles[j * self.line_length + i].clone());
             }
             column
         })
     }
 
-    pub fn get_columns_count(&self) -> usize {
+    pub fn get_rows_count(&self) -> usize {
         self.tiles.len() / self.line_length
     }
 
@@ -47,6 +48,10 @@ impl<T: Display + PartialEq + Clone> Map<T> {
 
     pub fn to_xy(&self, index: usize) -> (usize, usize) {
         (index % self.line_length, index / self.line_length)
+    }
+
+    pub fn to_index(&self, x: usize, y: usize) -> usize {
+        y * self.line_length + x
     }
 
     pub fn distance(&self, a: usize, b: usize) -> usize {
