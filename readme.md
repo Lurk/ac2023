@@ -431,5 +431,8 @@ Before I start to think how that can help me and then how to detect such a patte
 even exists on real input.
 
 I can not eyeball it on 1000 steps. After adding grouping by second derivative the pattern is clearly visible there.
-Starting from step 132 `0` repeats every 131 step. Is length of a side in the real input. Looks like this is the way to 
-to detect a pattern. Get a side length, iterate through the steps until there will be repeating second derivative. 
+Starting from step 132 `0` repeats every 131 step. 131 is length of a side in the real input. Looks like this is the 
+way to to detect a pattern. Get a side length, iterate through the steps until there will be repeating second 
+derivative.
+
+Let's figure out what to do with it tomorrow. 
