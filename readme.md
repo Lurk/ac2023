@@ -476,6 +476,6 @@ Which means I can use simple math to calculate needed value like that
 5: 313_365 + 31_003 + 30_906 * 4 = 467_992
 ```
 
-Now I only need to repeat that 202300 minus 2 times. Easy. 
+Now I need to repeat that 202300  times. Easy. 
 
 
