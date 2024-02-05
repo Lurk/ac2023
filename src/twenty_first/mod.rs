@@ -1,7 +1,4 @@
-use std::{
-    collections::{HashMap, HashSet, VecDeque},
-    i64,
-};
+use std::collections::{HashSet, VecDeque};
 
 use crate::{
     utils::{direction::Direction, get_non_empty_lines, map::Map},
@@ -109,14 +106,9 @@ impl Position {
             _ => panic!("Invalid direction"),
         }
     }
-
-    fn to_index(&self, max_x: usize, max_y: usize) -> usize {
-        let x = max_x * self.multiplier_x;
-        self.y * x + max_y * self.multiplier_y * x + self.x + x
-    }
 }
 
-fn go2(map: &Map<char>, amount_of_steps: usize) -> usize {
+fn go2(map: &Map<char>) -> usize {
     let mut deq: VecDeque<Position> = VecDeque::new();
     map.tiles
         .iter()
@@ -132,13 +124,11 @@ fn go2(map: &Map<char>, amount_of_steps: usize) -> usize {
             });
         });
 
-    let mut derivative: i64 = 0;
-    let mut second_derivative: i64 = 0;
-    let mut prev_length = 0;
     let mut current_length = deq.len();
-    let mut derivatives: HashMap<i64, Vec<usize>> = HashMap::new();
     let mut visited: HashSet<Position> = HashSet::new();
-    for step in 0..amount_of_steps {
+    let mut initial_values = vec![];
+    // step one: we need to move 65 + 131 * 2 times and get initial values
+    for step in 0..65 + 131 * 2 {
         visited.clear();
         for _ in 0..current_length {
             let position = deq.pop_front().expect("No position");
@@ -152,26 +142,22 @@ fn go2(map: &Map<char>, amount_of_steps: usize) -> usize {
             }
         }
 
-        let value = current_length - prev_length;
-        derivative = value as i64 - derivative;
-        second_derivative = derivative as i64 - second_derivative;
-
-        derivatives
-            .entry(second_derivative)
-            .or_insert(vec![])
-            .push(step);
-
-        prev_length = current_length;
         current_length = deq.len();
-        second_derivative = derivative as i64;
-        derivative = value as i64;
+
+        if step + 1 == 65 || step + 1 == 65 + 131 || step + 1 == 65 + 131 * 2 {
+            initial_values.push(current_length);
+        }
     }
-    derivatives
-        .iter()
-        .filter(|(_, v)| v.len() > 3)
-        .for_each(|(k, v)| {
-            println!("{:?}: {:?}", k, v);
-        });
+    // step two: get derivatives
+    let d1 = initial_values[1] - initial_values[0];
+    let d11 = initial_values[2] - initial_values[1];
+    let d2 = d11 - d1;
+
+    //step 3: iterate 202300 times
+    current_length = initial_values[0];
+    for i in 0..202300 {
+        current_length += d1 + d2 * i;
+    }
     current_length
 }
 
@@ -200,11 +186,11 @@ fn go(map: &mut Map<char>, amount_of_steps: usize) -> usize {
 }
 
 fn one(map: &mut Map<char>) -> usize {
-    go2(map, 64)
+    go(map, 64)
 }
 
 fn two(map: &mut Map<char>) -> usize {
-    go2(map, 1000)
+    go2(map)
 }
 
 pub fn run(runner: &Runner) {
@@ -239,26 +225,5 @@ mod tests {
     fn test_go() {
         let mut map = parse_input(INPUT.trim().lines().map(|s| s.to_string()));
         assert_eq!(go(&mut map, 6), 16);
-    }
-
-    #[test]
-    fn test_two() {
-        let map = parse_input(INPUT.trim().lines().map(|s| s.to_string()));
-        println!("{}", map.tiles.iter().filter(|tile| **tile != '#').count());
-        let now = std::time::Instant::now();
-        assert_eq!(go2(&map, 6), 16);
-        println!("6: {:?}", now.elapsed());
-        assert_eq!(go2(&map, 10), 50);
-        println!("10: {:?}", now.elapsed());
-        assert_eq!(go2(&map, 50), 1594);
-        println!("50: {:?}", now.elapsed());
-        assert_eq!(go2(&map, 100), 6536);
-        println!("100: {:?}", now.elapsed());
-        assert_eq!(go2(&map, 500), 167004);
-        println!("500: {:?}", now.elapsed());
-        assert_eq!(go2(&map, 1000), 668697);
-        println!("1000: {:?}", now.elapsed());
-        assert_eq!(go2(&map, 5000), 16733044);
-        println!("5000: {:?}", now.elapsed());
     }
 }

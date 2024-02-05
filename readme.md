@@ -435,4 +435,47 @@ Starting from step 132 `0` repeats every 131 step. 131 is length of a side in th
 way to to detect a pattern. Get a side length, iterate through the steps until there will be repeating second 
 derivative.
 
-Let's figure out what to do with it tomorrow. 
+Let's figure out what to do with it tomorrow.
+
+That was a long time since I wrote previous sentence. I got sick, and was in bed without any energy to continue. Now, I
+hope, I am back to presick performance levels. Lets figure out whats left. 
+
+131 does not help at all. 26501365 - is amount of steps. It is not divisible by 131. 26501365 - 133 is also not 
+divisible by 131. So yeah, while there is clearly a pattern, I do not see how it can help me.
+
+Was playing a bit with numbers. IDK if that has a meaning but *2023*00 * 131 + 65 = 26501365
+
+```
+65 + 131 * 0 = 3_917
+65 + 131 * 1 = 34_920
+65 + 131 * 2 = 96_829
+65 + 131 * 3 = 189_644
+65 + 131 * 4 = 313_365
+65 + 131 * 5 = 467_992
+```
+
+Does it make any sense?
+
+It does. Oh boy it does. d1 - first derivative. d2 - second derivative.
+
+```
+N     Value       d1         d2
+0    3_917
+1    34_920      31_003
+2    96_829      61_909     30_906
+3    189_644     92_815     30_906           
+```
+
+Which means I can use simple math to calculate needed value like that
+
+```
+1: 3_917 + 31_003 + 30_906 * 0 = 34_920
+2: 34_920 + 31_003 + 30_906 * 1 = 96_829
+3: 96_829 + 31_003 + 30_906 * 2 = 189_644
+4: 189_644 + 31_003 + 30_906 * 3 = 313_365
+5: 313_365 + 31_003 + 30_906 * 4 = 467_992
+```
+
+Now I only need to repeat that 202300 minus 2 times. Easy. 
+
+
