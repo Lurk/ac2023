@@ -478,4 +478,7 @@ Which means I can use simple math to calculate needed value like that
 
 Now I need to repeat that 202300  times. Easy. 
 
+## Day 22
+
+The first part of the first task looks like 3D Tetris.
 
