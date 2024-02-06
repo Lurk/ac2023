@@ -480,5 +480,7 @@ Now I need to repeat that 202300  times. Easy.
 
 ## Day 22
 
-The first part of the first task looks like 3D Tetris.
+The first part of the first task looks like 3D Tetris. 
+
+I am pretty sure that there is math that answers the question if two segments intersect each other.
 
